@@ -1,7 +1,6 @@
 
 import { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Box, Plane, Text3D } from '@react-three/drei';
+import { Box, Plane } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface KaabaModelProps {
@@ -11,14 +10,6 @@ interface KaabaModelProps {
 
 const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelProps) => {
   const kaabaRef = useRef<THREE.Group>(null);
-  const clothRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (clothRef.current) {
-      // Subtle animation for the Kiswah (cloth covering)
-      clothRef.current.material.uniforms.time.value = state.clock.elapsedTime;
-    }
-  });
 
   return (
     <group ref={kaabaRef} position={position} rotation={rotation}>
@@ -32,7 +23,6 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
 
       {/* Kiswah (Black Cloth) with gold pattern */}
       <Box
-        ref={clothRef}
         args={[2.02, 2.52, 2.02]}
         position={[0, 1.25, 0]}
       >
