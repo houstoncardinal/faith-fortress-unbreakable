@@ -1,5 +1,5 @@
 
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera, Html } from '@react-three/drei';
 import { Loader2 } from 'lucide-react';
@@ -43,27 +43,24 @@ interface KaabaSceneProps {
 }
 
 const KaabaScene = ({ autoRotate = false, showControls = true }: KaabaSceneProps) => {
-  const [isLoading, setIsLoading] = useState(true);
-
   return (
     <div className="w-full h-full relative">
       <Canvas
         shadows
+        gl={{ antialias: true }}
         camera={{ position: [5, 3, 5], fov: 60 }}
-        onCreated={() => setIsLoading(false)}
         className="rounded-lg"
       >
         <Suspense fallback={<LoadingSpinner />}>
           {/* Lighting */}
-          <ambientLight intensity={0.3} />
+          <ambientLight intensity={0.4} />
           <directionalLight
             position={[10, 10, 5]}
             intensity={1}
             castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+            shadow-mapSize={[1024, 1024]}
           />
-          <pointLight position={[0, 5, 0]} intensity={0.5} color="#ffd700" />
+          <pointLight position={[0, 5, 0]} intensity={0.3} color="#ffd700" />
           
           {/* Environment */}
           <Environment preset="sunset" background={false} />
