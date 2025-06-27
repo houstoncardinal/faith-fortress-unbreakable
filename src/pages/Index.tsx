@@ -8,6 +8,7 @@ import DhikrCounter from "@/components/DhikrCounter";
 import QiblaCompass from "@/components/QiblaCompass";
 import IslamicCalendar from "@/components/IslamicCalendar";
 import DailyHadith from "@/components/DailyHadith";
+import Kaaba3DCard from "@/components/Kaaba3DCard";
 
 const Index = () => {
   const [isDark, setIsDark] = useState(false);
@@ -71,6 +72,11 @@ const Index = () => {
             {/* Prayer Times - Full Width */}
             <div className="animate-fade-in">
               <PrayerTimesCard />
+            </div>
+            
+            {/* 3D Kaaba - Full Width */}
+            <div className="animate-fade-in">
+              <Kaaba3DCard />
             </div>
             
             {/* Quran and Hadith Row */}
