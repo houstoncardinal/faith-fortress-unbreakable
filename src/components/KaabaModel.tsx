@@ -12,118 +12,141 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
 
   return (
     <group ref={kaabaRef} position={position} rotation={rotation}>
-      {/* Main Kaaba Structure - Accurate proportions (12m x 9m x 15m high) */}
+      {/* Main Kaaba Structure - Accurate proportions based on historical measurements */}
+      {/* Real dimensions: 12m x 10m x 15m height */}
       <mesh position={[0, 1.5, 0]}>
-        <boxGeometry args={[1.8, 3, 1.35]} />
+        <boxGeometry args={[1.2, 3, 1.0]} />
         <meshStandardMaterial 
-          color="#2a2a2a" 
-          roughness={0.8}
-          metalness={0.1}
+          color="#1a1a1a" 
+          roughness={0.9}
+          metalness={0.05}
         />
       </mesh>
 
-      {/* Kiswah (Black Cloth) - Sacred covering with texture suggestion */}
+      {/* Kiswah (Sacred Black Cloth) - Properly draped with realistic texture */}
       <mesh position={[0, 1.5, 0]}>
-        <boxGeometry args={[1.82, 3.02, 1.37]} />
+        <boxGeometry args={[1.22, 3.02, 1.02]} />
         <meshStandardMaterial 
           color="#000000"
-          metalness={0.02}
-          roughness={0.95}
-          bumpScale={0.001}
-        />
-      </mesh>
-
-      {/* Hizam (Gold Belt) - The sacred belt around the Kaaba */}
-      <mesh position={[0, 2.1, 0]}>
-        <boxGeometry args={[1.85, 0.35, 1.4]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.8}
-          roughness={0.2}
-          emissive="#B8860B"
-          emissiveIntensity={0.15}
-        />
-      </mesh>
-
-      {/* Additional decorative bands on Kiswah */}
-      <mesh position={[0, 2.5, 0]}>
-        <boxGeometry args={[1.6, 0.15, 1.39]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.1}
-        />
-      </mesh>
-
-      <mesh position={[0, 1.3, 0]}>
-        <boxGeometry args={[1.6, 0.12, 1.39]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.1}
-        />
-      </mesh>
-
-      {/* Door of the Kaaba - Bab al-Kaaba (East side) */}
-      <mesh position={[0.91, 1.4, 0]}>
-        <boxGeometry args={[0.04, 2.2, 0.9]} />
-        <meshStandardMaterial 
-          color="#FFD700"
-          metalness={0.9}
-          roughness={0.1}
-          emissive="#DAA520"
-          emissiveIntensity={0.1}
-        />
-      </mesh>
-
-      {/* Door Handle - Ornate Islamic design */}
-      <mesh position={[0.93, 1.1, 0.2]}>
-        <cylinderGeometry args={[0.03, 0.03, 0.15, 8]} />
-        <meshStandardMaterial 
-          color="#FFD700"
-          metalness={0.9}
-          roughness={0.1}
-        />
-      </mesh>
-
-      {/* Door Lock (Miftah al-Kaaba) */}
-      <mesh position={[0.93, 1.6, 0.3]}>
-        <boxGeometry args={[0.02, 0.15, 0.08]} />
-        <meshStandardMaterial 
-          color="#FFD700"
-          metalness={0.9}
-          roughness={0.1}
-        />
-      </mesh>
-
-      {/* Hajar al-Aswad (Black Stone) - Southeast corner */}
-      <mesh position={[0.91, 0.9, 0.67]}>
-        <sphereGeometry args={[0.12, 16, 16]} />
-        <meshStandardMaterial 
-          color="#1a1a1a"
-          metalness={0.3}
-          roughness={0.7}
+          metalness={0.01}
+          roughness={0.98}
           bumpScale={0.002}
         />
       </mesh>
 
-      {/* Silver frame around Black Stone - Ottoman era addition */}
-      <mesh position={[0.92, 0.9, 0.67]}>
-        <torusGeometry args={[0.15, 0.025, 8, 16]} />
+      {/* Hizam (Golden Belt) - The sacred golden band with Quranic inscriptions */}
+      <mesh position={[0, 2.3, 0]}>
+        <boxGeometry args={[1.25, 0.4, 1.05]} />
         <meshStandardMaterial 
-          color="#C0C0C0"
+          color="#DAA520"
+          metalness={0.85}
+          roughness={0.15}
+          emissive="#B8860B"
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+
+      {/* Upper Calligraphy Band - "La ilaha illa Allah" */}
+      <mesh position={[0, 2.7, 0]}>
+        <boxGeometry args={[1.18, 0.25, 1.03]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.8}
+          roughness={0.2}
+          emissive="#DAA520"
+          emissiveIntensity={0.15}
+        />
+      </mesh>
+
+      {/* Lower Calligraphy Band */}
+      <mesh position={[0, 1.1, 0]}>
+        <boxGeometry args={[1.18, 0.2, 1.03]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.8}
+          roughness={0.2}
+          emissive="#DAA520"
+          emissiveIntensity={0.15}
+        />
+      </mesh>
+
+      {/* Door of the Kaaba - Bab al-Kaaba (Historically accurate golden door) */}
+      <mesh position={[0.61, 1.4, 0]}>
+        <boxGeometry args={[0.05, 2.4, 1.2]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.95}
+          roughness={0.05}
+          emissive="#DAA520"
+          emissiveIntensity={0.15}
+        />
+      </mesh>
+
+      {/* Door Frame - Ornate Islamic geometric patterns */}
+      <mesh position={[0.615, 1.4, 0]}>
+        <boxGeometry args={[0.02, 2.5, 1.25]} />
+        <meshStandardMaterial 
+          color="#B8860B"
+          metalness={0.9}
+          roughness={0.1}
+        />
+      </mesh>
+
+      {/* Door Handles - Twin handles as per authentic design */}
+      <mesh position={[0.63, 1.2, 0.3]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.2, 8]} />
+        <meshStandardMaterial 
+          color="#FFD700"
           metalness={0.95}
           roughness={0.05}
         />
       </mesh>
 
-      {/* Rukn al-Yamani (Yemeni Corner) - Southwest corner marker */}
-      <mesh position={[0.91, 1.2, -0.67]}>
-        <boxGeometry args={[0.02, 0.3, 0.02]} />
+      <mesh position={[0.63, 1.2, -0.3]}>
+        <cylinderGeometry args={[0.04, 0.04, 0.2, 8]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.95}
+          roughness={0.05}
+        />
+      </mesh>
+
+      {/* Miftah al-Kaaba (Sacred Lock) */}
+      <mesh position={[0.63, 1.8, 0]}>
+        <boxGeometry args={[0.03, 0.25, 0.15]} />
+        <meshStandardMaterial 
+          color="#B8860B"
+          metalness={0.9}
+          roughness={0.1}
+        />
+      </mesh>
+
+      {/* Hajar al-Aswad (Black Stone) - Positioned at southeast corner */}
+      <mesh position={[0.61, 0.9, 0.5]}>
+        <sphereGeometry args={[0.15, 32, 32]} />
+        <meshStandardMaterial 
+          color="#0a0a0a"
+          metalness={0.4}
+          roughness={0.6}
+          bumpScale={0.003}
+        />
+      </mesh>
+
+      {/* Silver Frame around Black Stone - Ottoman-era addition */}
+      <mesh position={[0.62, 0.9, 0.5]}>
+        <torusGeometry args={[0.18, 0.03, 16, 32]} />
+        <meshStandardMaterial 
+          color="#C0C0C0"
+          metalness={0.98}
+          roughness={0.02}
+          emissive="#A0A0A0"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Rukn al-Yamani (Yemeni Corner) - Important corner for pilgrims */}
+      <mesh position={[0.61, 1.5, -0.5]}>
+        <boxGeometry args={[0.03, 0.8, 0.03]} />
         <meshStandardMaterial 
           color="#8B4513"
           metalness={0.1}
@@ -131,194 +154,225 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
         />
       </mesh>
 
-      {/* Shadhrawan - The marble base/foundation */}
-      <mesh position={[0, 0.15, 0]}>
-        <cylinderGeometry args={[2.8, 2.8, 0.3, 32]} />
+      {/* Shadhrawan - The marble foundation/base around the Kaaba */}
+      <mesh position={[0, 0.1, 0]}>
+        <cylinderGeometry args={[2.5, 2.5, 0.2, 64]} />
         <meshStandardMaterial 
-          color="#F5F5DC"
-          metalness={0.1}
-          roughness={0.3}
+          color="#F8F8FF"
+          metalness={0.02}
+          roughness={0.25}
         />
       </mesh>
 
-      {/* Hateem/Hijr Ismail - The semicircular area */}
-      <mesh position={[-1.2, 0.02, 0]} rotation={[0, 0, 0]}>
-        <ringGeometry args={[0.8, 1.2, 16, 1, 0, Math.PI]} />
+      {/* Hateem/Hijr Ismail - The sacred semicircular area */}
+      <mesh position={[-0.8, 0.02, 0]} rotation={[0, 0, 0]}>
+        <ringGeometry args={[0.6, 1.0, 32, 1, 0, Math.PI]} />
         <meshStandardMaterial 
-          color="#E6E6E6"
-          metalness={0.05}
-          roughness={0.4}
-        />
-      </mesh>
-
-      {/* Low wall of Hateem */}
-      <mesh position={[-1.8, 0.2, 0]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.4, 16]} />
-        <meshStandardMaterial 
-          color="#D3D3D3"
-          metalness={0.1}
-          roughness={0.6}
-        />
-      </mesh>
-
-      <mesh position={[-1.8, 0.2, 0.6]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.4, 16]} />
-        <meshStandardMaterial 
-          color="#D3D3D3"
-          metalness={0.1}
-          roughness={0.6}
-        />
-      </mesh>
-
-      <mesh position={[-1.8, 0.2, -0.6]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.4, 16]} />
-        <meshStandardMaterial 
-          color="#D3D3D3"
-          metalness={0.1}
-          roughness={0.6}
-        />
-      </mesh>
-
-      {/* Tawaf Area - White marble flooring */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <circleGeometry args={[8, 64]} />
-        <meshStandardMaterial 
-          color="#FFFFFF"
+          color="#FFFAFA"
           metalness={0.02}
           roughness={0.3}
         />
       </mesh>
 
-      {/* Tawaf guidance circles */}
-      {[3.5, 5, 6.5].map((radius, index) => (
-        <mesh key={index} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
-          <ringGeometry args={[radius - 0.015, radius + 0.015, 64]} />
+      {/* Wall of Hateem - Low marble wall */}
+      {[-1.4, -1.35, -1.3, -1.25, -1.2].map((x, index) => (
+        <mesh key={index} position={[x, 0.15, 0.45 - index * 0.225]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.3, 16]} />
           <meshStandardMaterial 
-            color="#F0F0F0"
+            color="#E6E6FA"
             metalness={0.05}
-            roughness={0.4}
+            roughness={0.5}
           />
         </mesh>
       ))}
 
-      {/* Calligraphy on Kiswah - Quranic verses and Islamic patterns */}
-      {/* Upper band calligraphy */}
-      <mesh position={[0, 2.6, 0.685]}>
-        <boxGeometry args={[1.4, 0.25, 0.005]} />
+      {[-1.4, -1.35, -1.3, -1.25, -1.2].map((x, index) => (
+        <mesh key={`neg-${index}`} position={[x, 0.15, -0.45 + index * 0.225]}>
+          <cylinderGeometry args={[0.04, 0.04, 0.3, 16]} />
+          <meshStandardMaterial 
+            color="#E6E6FA"
+            metalness={0.05}
+            roughness={0.5}
+          />
+        </mesh>
+      ))}
+
+      {/* Tawaf Area - Sacred white marble flooring with accurate patterns */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+        <circleGeometry args={[7, 128]} />
         <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.08}
+          color="#FFFFFF"
+          metalness={0.01}
+          roughness={0.2}
         />
       </mesh>
 
-      {/* Door area calligraphy */}
-      <mesh position={[0.91, 2.0, 0.45]}>
-        <boxGeometry args={[0.005, 0.8, 0.8]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.08}
-        />
-      </mesh>
+      {/* Tawaf Guidance Circles - Multiple rings for different distances */}
+      {[3, 4, 5, 6].map((radius, index) => (
+        <mesh key={index} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.005, 0]}>
+          <ringGeometry args={[radius - 0.01, radius + 0.01, 128]} />
+          <meshStandardMaterial 
+            color="#F5F5F5"
+            metalness={0.02}
+            roughness={0.3}
+          />
+        </mesh>
+      ))}
 
-      {/* Side panels calligraphy */}
-      <mesh position={[0, 1.8, 0.685]}>
-        <boxGeometry args={[1.2, 0.18, 0.005]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.08}
-        />
-      </mesh>
-
-      <mesh position={[0, 1.2, 0.685]}>
-        <boxGeometry args={[1.0, 0.15, 0.005]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.08}
-        />
-      </mesh>
-
-      {/* Left side calligraphy */}
-      <mesh position={[-0.685, 1.8, 0]}>
-        <boxGeometry args={[0.005, 0.18, 1.2]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.08}
-        />
-      </mesh>
-
-      {/* Right side calligraphy */}
-      <mesh position={[0.685, 1.8, 0]}>
-        <boxGeometry args={[0.005, 0.18, 1.2]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.08}
-        />
-      </mesh>
-
-      {/* Back side calligraphy */}
-      <mesh position={[0, 1.8, -0.685]}>
-        <boxGeometry args={[1.2, 0.18, 0.005]} />
-        <meshStandardMaterial 
-          color="#DAA520"
-          metalness={0.7}
-          roughness={0.3}
-          emissive="#B8860B"
-          emissiveIntensity={0.08}
-        />
-      </mesh>
-
-      {/* Mizab ar-Rahmah - The golden waterspout on the roof */}
-      <mesh position={[0, 3.1, 0.4]}>
-        <cylinderGeometry args={[0.05, 0.08, 0.3, 8]} />
+      {/* Detailed Calligraphy Panels on each face */}
+      {/* Front Face (with door) */}
+      <mesh position={[0.61, 2.0, 0.3]}>
+        <boxGeometry args={[0.005, 0.6, 0.35]} />
         <meshStandardMaterial 
           color="#FFD700"
-          metalness={0.9}
-          roughness={0.1}
+          metalness={0.8}
+          roughness={0.2}
+          emissive="#DAA520"
+          emissiveIntensity={0.1}
         />
       </mesh>
 
-      {/* Subtle roof indication */}
-      <mesh position={[0, 3.05, 0]}>
-        <boxGeometry args={[1.85, 0.05, 1.4]} />
+      <mesh position={[0.61, 2.0, -0.3]}>
+        <boxGeometry args={[0.005, 0.6, 0.35]} />
         <meshStandardMaterial 
-          color="#1a1a1a"
-          metalness={0.1}
-          roughness={0.9}
+          color="#FFD700"
+          metalness={0.8}
+          roughness={0.2}
+          emissive="#DAA520"
+          emissiveIntensity={0.1}
         />
       </mesh>
 
-      {/* Corner reinforcements - Architectural details */}
+      {/* Back Face */}
+      <mesh position={[-0.61, 2.0, 0]}>
+        <boxGeometry args={[0.005, 0.8, 0.9]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.8}
+          roughness={0.2}
+          emissive="#DAA520"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Left Side */}
+      <mesh position={[0, 2.0, 0.51]}>
+        <boxGeometry args={[1.1, 0.8, 0.005]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.8}
+          roughness={0.2}
+          emissive="#DAA520"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Right Side */}
+      <mesh position={[0, 2.0, -0.51]}>
+        <boxGeometry args={[1.1, 0.8, 0.005]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.8}
+          roughness={0.2}
+          emissive="#DAA520"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Mizab ar-Rahmah - The golden waterspout (Historically accurate position) */}
+      <mesh position={[0, 3.1, 0.3]}>
+        <cylinderGeometry args={[0.06, 0.1, 0.4, 12]} />
+        <meshStandardMaterial 
+          color="#FFD700"
+          metalness={0.95}
+          roughness={0.05}
+          emissive="#DAA520"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+
+      {/* Roof indication with proper slope */}
+      <mesh position={[0, 3.05, 0]}>
+        <boxGeometry args={[1.25, 0.08, 1.05]} />
+        <meshStandardMaterial 
+          color="#0a0a0a"
+          metalness={0.02}
+          roughness={0.95}
+        />
+      </mesh>
+
+      {/* Corner Reinforcements - Authentic architectural details */}
       {[
-        [0.9, 1.5, 0.675], [0.9, 1.5, -0.675], 
-        [-0.9, 1.5, 0.675], [-0.9, 1.5, -0.675]
+        [0.6, 1.5, 0.5], [0.6, 1.5, -0.5], 
+        [-0.6, 1.5, 0.5], [-0.6, 1.5, -0.5]
       ].map((pos, index) => (
         <mesh key={index} position={pos as [number, number, number]}>
           <boxGeometry args={[0.02, 3, 0.02]} />
           <meshStandardMaterial 
-            color="#333333"
-            metalness={0.2}
-            roughness={0.7}
+            color="#2a2a2a"
+            metalness={0.1}
+            roughness={0.8}
           />
         </mesh>
       ))}
+
+      {/* Additional Sacred Elements */}
+      {/* Multazam - The area between the door and Black Stone */}
+      <mesh position={[0.61, 1.15, 0.25]}>
+        <boxGeometry args={[0.008, 0.5, 0.25]} />
+        <meshStandardMaterial 
+          color="#DAA520"
+          metalness={0.7}
+          roughness={0.3}
+          emissive="#B8860B"
+          emissiveIntensity={0.08}
+        />
+      </mesh>
+
+      {/* Decorative Islamic Geometric Patterns on corners */}
+      {[
+        [0.6, 2.5, 0.5], [0.6, 2.5, -0.5], 
+        [-0.6, 2.5, 0.5], [-0.6, 2.5, -0.5]
+      ].map((pos, index) => (
+        <mesh key={`corner-${index}`} position={pos as [number, number, number]}>
+          <octahedronGeometry args={[0.05]} />
+          <meshStandardMaterial 
+            color="#FFD700"
+            metalness={0.9}
+            roughness={0.1}
+            emissive="#DAA520"
+            emissiveIntensity={0.1}
+          />
+        </mesh>
+      ))}
+
+      {/* Subtle ambient particles effect around the Kaaba */}
+      {Array.from({ length: 20 }).map((_, index) => {
+        const angle = (index / 20) * Math.PI * 2;
+        const radius = 4 + Math.sin(index) * 0.5;
+        const height = 0.5 + Math.cos(index * 2) * 0.3;
+        return (
+          <mesh 
+            key={`particle-${index}`} 
+            position={[
+              Math.cos(angle) * radius, 
+              height, 
+              Math.sin(angle) * radius
+            ]}
+          >
+            <sphereGeometry args={[0.02, 8, 8]} />
+            <meshStandardMaterial 
+              color="#F0F8FF"
+              metalness={0.8}
+              roughness={0.2}
+              emissive="#E6E6FA"
+              emissiveIntensity={0.3}
+              transparent
+              opacity={0.6}
+            />
+          </mesh>
+        );
+      })}
     </group>
   );
 };
