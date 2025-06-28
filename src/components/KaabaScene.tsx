@@ -1,7 +1,7 @@
 
 import { Suspense, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, PerspectiveCamera, Html } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Loader2 } from 'lucide-react';
 import KaabaModel from './KaabaModel';
 import * as THREE from 'three';
@@ -29,12 +29,12 @@ const CameraController = ({ autoRotate }: { autoRotate: boolean }) => {
 };
 
 const LoadingSpinner = () => (
-  <Html center>
+  <div className="flex items-center justify-center h-full">
     <div className="flex items-center gap-2 text-primary">
       <Loader2 className="w-6 h-6 animate-spin" />
       <span className="font-arabic">جاري التحميل...</span>
     </div>
-  </Html>
+  </div>
 );
 
 interface KaabaSceneProps {
@@ -46,24 +46,17 @@ const KaabaScene = ({ autoRotate = false, showControls = true }: KaabaSceneProps
   return (
     <div className="w-full h-full relative">
       <Canvas
-        shadows
-        gl={{ antialias: true }}
         camera={{ position: [5, 3, 5], fov: 60 }}
         className="rounded-lg"
       >
-        <Suspense fallback={<LoadingSpinner />}>
+        <Suspense fallback={null}>
           {/* Lighting */}
-          <ambientLight intensity={0.4} />
+          <ambientLight intensity={0.6} />
           <directionalLight
             position={[10, 10, 5]}
-            intensity={1}
-            castShadow
-            shadow-mapSize={[1024, 1024]}
+            intensity={0.8}
           />
-          <pointLight position={[0, 5, 0]} intensity={0.3} color="#ffd700" />
-          
-          {/* Environment */}
-          <Environment preset="sunset" background={false} />
+          <pointLight position={[0, 5, 0]} intensity={0.4} color="#ffd700" />
           
           {/* Camera Controller */}
           <CameraController autoRotate={autoRotate} />

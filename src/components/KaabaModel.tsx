@@ -1,6 +1,5 @@
 
 import { useRef } from 'react';
-import { Box, Plane } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface KaabaModelProps {
@@ -14,59 +13,66 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
   return (
     <group ref={kaabaRef} position={position} rotation={rotation}>
       {/* Kaaba Structure */}
-      <Box args={[2, 2.5, 2]} position={[0, 1.25, 0]}>
+      <mesh position={[0, 1.25, 0]}>
+        <boxGeometry args={[2, 2.5, 2]} />
         <meshStandardMaterial color="#1a1a1a" />
-      </Box>
+      </mesh>
 
       {/* Kiswah (Black Cloth) with gold pattern */}
-      <Box args={[2.02, 2.52, 2.02]} position={[0, 1.25, 0]}>
+      <mesh position={[0, 1.25, 0]}>
+        <boxGeometry args={[2.02, 2.52, 2.02]} />
         <meshStandardMaterial 
           color="#0a0a0a"
           metalness={0.1}
           roughness={0.8}
         />
-      </Box>
+      </mesh>
 
       {/* Gold Band (Hizam) */}
-      <Box args={[2.1, 0.3, 2.1]} position={[0, 1.8, 0]}>
+      <mesh position={[0, 1.8, 0]}>
+        <boxGeometry args={[2.1, 0.3, 2.1]} />
         <meshStandardMaterial 
           color="#ffd700"
           metalness={0.8}
           roughness={0.2}
         />
-      </Box>
+      </mesh>
 
       {/* Door */}
-      <Box args={[0.02, 0.8, 0.4]} position={[0, 0.9, 1.01]}>
+      <mesh position={[0, 0.9, 1.01]}>
+        <boxGeometry args={[0.02, 0.8, 0.4]} />
         <meshStandardMaterial 
           color="#ffd700"
           metalness={0.8}
           roughness={0.2}
         />
-      </Box>
+      </mesh>
 
       {/* Hajar al-Aswad (Black Stone) indicator */}
-      <Box args={[0.05, 0.2, 0.2]} position={[1.01, 0.8, 0.5]}>
+      <mesh position={[1.01, 0.8, 0.5]}>
+        <boxGeometry args={[0.05, 0.2, 0.2]} />
         <meshStandardMaterial 
           color="#2a2a2a"
           metalness={0.1}
           roughness={0.9}
         />
-      </Box>
+      </mesh>
 
       {/* Base/Foundation */}
-      <Box args={[3, 0.2, 3]} position={[0, 0.1, 0]}>
+      <mesh position={[0, 0.1, 0]}>
+        <boxGeometry args={[3, 0.2, 3]} />
         <meshStandardMaterial color="#8b7355" />
-      </Box>
+      </mesh>
 
       {/* Marble Floor Pattern */}
-      <Plane args={[10, 10]} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+        <planeGeometry args={[10, 10]} />
         <meshStandardMaterial 
           color="#f5f5f5"
           metalness={0.1}
           roughness={0.3}
         />
-      </Plane>
+      </mesh>
     </group>
   );
 };
