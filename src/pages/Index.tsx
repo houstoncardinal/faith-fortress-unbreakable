@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Moon, Sun, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import IslamicCalendar from "@/components/IslamicCalendar";
 import DailyHadith from "@/components/DailyHadith";
 import Kaaba3DCard from "@/components/Kaaba3DCard";
 import NotificationPermission from "@/components/NotificationPermission";
+import MobileToolbar from "@/components/MobileToolbar";
 
 const Index = () => {
   const [isDark, setIsDark] = useState(false);
@@ -79,7 +81,7 @@ const Index = () => {
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Prayer Times - Full Width */}
-            <div className="animate-fade-in">
+            <div id="prayer-times" className="animate-fade-in">
               <PrayerTimesCard />
             </div>
             
@@ -90,20 +92,22 @@ const Index = () => {
             
             {/* Quran and Hadith Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
-              <QuranCard />
+              <div id="quran-section">
+                <QuranCard />
+              </div>
               <DailyHadith />
             </div>
           </div>
 
           {/* Right Column */}
           <div className="space-y-8">
-            <div className="animate-fade-in">
+            <div id="dhikr-section" className="animate-fade-in">
               <DhikrCounter />
             </div>
-            <div className="animate-fade-in">
+            <div id="qibla-section" className="animate-fade-in">
               <QiblaCompass />
             </div>
-            <div className="animate-fade-in">
+            <div id="calendar-section" className="animate-fade-in">
               <IslamicCalendar />
             </div>
           </div>
@@ -154,6 +158,9 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      {/* Mobile Toolbar */}
+      <MobileToolbar />
     </div>
   );
 };
