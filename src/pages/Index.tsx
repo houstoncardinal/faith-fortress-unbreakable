@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Moon, Sun, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import QiblaCompass from "@/components/QiblaCompass";
 import IslamicCalendar from "@/components/IslamicCalendar";
 import DailyHadith from "@/components/DailyHadith";
 import Kaaba3DCard from "@/components/Kaaba3DCard";
+import NotificationPermission from "@/components/NotificationPermission";
 
 const Index = () => {
   const [isDark, setIsDark] = useState(false);
@@ -67,6 +67,11 @@ const Index = () => {
           </div>
           <p className="text-muted-foreground font-medium">Assalamu Alaikum wa Rahmatullahi wa Barakatuh</p>
           <p className="text-sm text-muted-foreground mt-2 italic">May Allah's peace, mercy, and blessings be upon you</p>
+        </div>
+
+        {/* Notification Permission */}
+        <div className="mb-8 animate-fade-in">
+          <NotificationPermission />
         </div>
 
         {/* Main Grid */}
