@@ -11,10 +11,10 @@ const CameraController = ({ autoRotate }: { autoRotate: boolean }) => {
   
   useFrame((state) => {
     if (autoRotate && cameraRef.current) {
-      const time = state.clock.elapsedTime * 0.08; // Slower, more respectful rotation
-      cameraRef.current.position.x = Math.sin(time) * 6;
-      cameraRef.current.position.z = Math.cos(time) * 6;
-      cameraRef.current.lookAt(0, 1.5, 0);
+      const time = state.clock.elapsedTime * 0.05; // Even slower, more reverent rotation
+      cameraRef.current.position.x = Math.sin(time) * 7;
+      cameraRef.current.position.z = Math.cos(time) * 7;
+      cameraRef.current.lookAt(0, 1.8, 0);
     }
   });
 
@@ -22,17 +22,20 @@ const CameraController = ({ autoRotate }: { autoRotate: boolean }) => {
     <PerspectiveCamera
       ref={cameraRef}
       makeDefault
-      position={[4, 2.5, 4]}
-      fov={50} // Slightly narrower field of view for more focused view
+      position={[5, 3, 5]}
+      fov={45}
     />
   );
 };
 
 const LoadingSpinner = () => (
-  <div className="flex items-center justify-center h-full">
-    <div className="flex items-center gap-2 text-primary">
-      <Loader2 className="w-6 h-6 animate-spin" />
-      <span className="font-arabic">جاري التحميل...</span>
+  <div className="flex items-center justify-center h-full bg-gradient-to-b from-slate-900 to-slate-800">
+    <div className="flex items-center gap-3 text-white p-6 rounded-lg bg-black/40 backdrop-blur-sm">
+      <Loader2 className="w-6 h-6 animate-spin text-gold" />
+      <div>
+        <div className="font-arabic text-lg">جاري التحميل...</div>
+        <div className="text-sm opacity-75">Loading the Sacred House...</div>
+      </div>
     </div>
   </div>
 );
@@ -46,39 +49,59 @@ const KaabaScene = ({ autoRotate = false, showControls = true }: KaabaSceneProps
   return (
     <div className="w-full h-full relative">
       <Canvas
-        camera={{ position: [4, 2.5, 4], fov: 50 }}
+        camera={{ position: [5, 3, 5], fov: 45 }}
         className="rounded-lg"
       >
         <Suspense fallback={null}>
-          {/* Soft ambient lighting */}
-          <ambientLight intensity={0.5} color="#F0F8FF" />
+          {/* Divine Lighting Setup */}
+          <ambientLight intensity={0.4} color="#F8F8FF" />
           
-          {/* Main directional light - like sunlight */}
+          {/* Main divine light from above */}
           <directionalLight
-            position={[8, 12, 6]}
-            intensity={0.9}
+            position={[0, 15, 0]}
+            intensity={1.2}
             color="#FFFACD"
+            castShadow
           />
           
-          {/* Secondary light for depth */}
+          {/* Blessed light from the east */}
           <directionalLight
-            position={[-4, 8, -4]}
-            intensity={0.4}
+            position={[10, 8, 5]}
+            intensity={0.8}
+            color="#FFE4B5"
+          />
+          
+          {/* Soft light from the west */}
+          <directionalLight
+            position={[-8, 6, -3]}
+            intensity={0.5}
+            color="#F0F8FF"
+          />
+          
+          {/* Sacred point light above Kaaba */}
+          <pointLight 
+            position={[0, 10, 0]} 
+            intensity={0.8} 
+            color="#FFFACD"
+            distance={20}
+            decay={1.5}
+          />
+          
+          {/* Gentle rim lighting */}
+          <pointLight 
+            position={[0, 3, -10]} 
+            intensity={0.4} 
             color="#E6E6FA"
           />
-          
-          {/* Warm point light from above - divine light */}
+
+          {/* Blessed light particles */}
           <pointLight 
-            position={[0, 8, 0]} 
-            intensity={0.6} 
-            color="#FFE4B5"
-            distance={15}
-            decay={2}
+            position={[5, 8, 5]} 
+            intensity={0.3} 
+            color="#F0F8FF"
           />
-          
-          {/* Subtle rim lighting */}
           <pointLight 
-            position={[0, 2, -8]} 
+            position={[-5, 8, -5]} 
             intensity={0.3} 
             color="#F0F8FF"
           />
@@ -92,36 +115,53 @@ const KaabaScene = ({ autoRotate = false, showControls = true }: KaabaSceneProps
           {/* Controls */}
           {showControls && (
             <OrbitControls
-              enablePan={false} // Disable panning for more respectful interaction
+              enablePan={false}
               enableZoom={true}
               enableRotate={true}
-              minDistance={3}
-              maxDistance={12}
-              minPolarAngle={Math.PI / 6} // Prevent looking from too low
-              maxPolarAngle={Math.PI / 2.2} // Prevent looking from too high
-              target={[0, 1.5, 0]} // Focus on center of Kaaba
-              autoRotateSpeed={0.5} // Slower rotation
+              minDistance={4}
+              maxDistance={15}
+              minPolarAngle={Math.PI / 8}
+              maxPolarAngle={Math.PI / 2.1}
+              target={[0, 1.8, 0]}
+              autoRotateSpeed={0.3}
             />
           )}
         </Suspense>
       </Canvas>
       
-      {/* Islamic Overlay with more respectful styling */}
-      <div className="absolute top-4 left-4 bg-black/30 backdrop-blur-sm rounded-lg p-4 border border-primary/20">
-        <div className="font-arabic text-white text-xl mb-1">بَيْتِ اللَّهِ الْحَرَامِ</div>
-        <div className="text-white/90 text-sm font-medium">The Sacred House of Allah</div>
-        <div className="text-white/70 text-xs mt-1 italic">Makkah Al-Mukarramah</div>
+      {/* Sacred Overlay */}
+      <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md rounded-xl p-5 border border-gold/30 shadow-2xl">
+        <div className="font-arabic text-white text-2xl mb-2 leading-relaxed">بَيْتِ اللَّهِ الْحَرَامِ</div>
+        <div className="text-white/95 text-sm font-medium mb-1">The Sacred House of Allah</div>
+        <div className="text-white/80 text-xs italic">Makkah Al-Mukarramah, Saudi Arabia</div>
+        <div className="text-white/70 text-xs mt-2">القِبْلَة • The Direction of Prayer</div>
       </div>
 
-      {/* Quranic verse overlay */}
-      <div className="absolute bottom-4 left-4 right-4 bg-primary/90 backdrop-blur-sm rounded-lg p-3 text-center border border-accent/30">
-        <div className="font-arabic text-white text-sm leading-relaxed mb-1">
-          وَلِلَّهِ عَلَى النَّاسِ حِجُّ الْبَيْتِ مَنِ اسْتَطَاعَ إِلَيْهِ سَبِيلًا
+      {/* Quranic Verse with Enhanced Styling */}
+      <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-r from-primary/95 to-accent/90 backdrop-blur-md rounded-xl p-5 text-center border border-gold/40 shadow-2xl">
+        <div className="font-arabic text-white text-lg leading-relaxed mb-3">
+          إِنَّ أَوَّلَ بَيْتٍ وُضِعَ لِلنَّاسِ لَلَّذِي بِبَكَّةَ مُبَارَكًا وَهُدًى لِّلْعَالَمِينَ
         </div>
-        <div className="text-white/90 text-xs italic">
-          "And pilgrimage to the House is a duty unto Allah for mankind, for him who can find a way thither."
+        <div className="text-white/95 text-sm italic font-medium leading-relaxed mb-2">
+          "Indeed, the first House [of worship] established for mankind was that at Bakkah - blessed and a guidance for the worlds."
         </div>
-        <div className="text-white/70 text-xs mt-1">Surah Ali-Imran (3:97)</div>
+        <div className="text-white/80 text-xs">Surah Ali-Imran (3:96)</div>
+      </div>
+
+      {/* Subtle floating particles for blessed atmosphere */}
+      <div className="absolute inset-0 pointer-events-none">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-gold/30 rounded-full animate-pulse"
+            style={{
+              left: `${20 + i * 10}%`,
+              top: `${15 + (i % 3) * 20}%`,
+              animationDelay: `${i * 0.5}s`,
+              animationDuration: '3s'
+            }}
+          />
+        ))}
       </div>
     </div>
   );
