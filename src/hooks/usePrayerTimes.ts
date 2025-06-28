@@ -97,7 +97,6 @@ export const usePrayerTimes = (): PrayerTimesHook => {
 
   // Check if it's exactly prayer time for azaan
   const checkAzaanTime = useCallback(() => {
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
     const currentTimeString = currentTime.toTimeString().slice(0, 5); // HH:MM format
     
     const currentPrayer = prayerTimes.find(prayer => 
@@ -110,15 +109,7 @@ export const usePrayerTimes = (): PrayerTimesHook => {
       // Show azaan notification
       toast({
         title: "🕌 Azaan - Time for Prayer",
-        description: (
-          <div className="space-y-2">
-            <div className="font-arabic text-lg">{currentPrayer.arabic}</div>
-            <div className="font-medium">{currentPrayer.name} Prayer Time</div>
-            <div className="text-sm opacity-90">
-              الله أكبر الله أكبر • Allahu Akbar
-            </div>
-          </div>
-        ),
+        description: `${currentPrayer.arabic} - ${currentPrayer.name} Prayer Time - الله أكبر الله أكبر • Allahu Akbar`,
         duration: 8000,
       });
 
