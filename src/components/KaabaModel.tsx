@@ -85,7 +85,7 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
         <boxGeometry args={[0.06, 2.9, 1.05]} />
         <meshStandardMaterial 
           color="#B8860B"
-          metalness={0.9)
+          metalness={0.9}
           roughness={0.1}
         />
       </mesh>
@@ -135,7 +135,7 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
         <ringGeometry args={[0.8, 1.3, 32, 1, 0, Math.PI]} />
         <meshStandardMaterial 
           color="#F8F8FF"
-          metalness={0.01)
+          metalness={0.01}
           roughness={0.2}
         />
       </mesh>
@@ -193,7 +193,7 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
         <boxGeometry args={[0.01, 0.8, 0.4]} />
         <meshStandardMaterial 
           color="#FFD700"
-          metalness={0.85)
+          metalness={0.85}
           roughness={0.15}
           emissive="#DAA520"
           emissiveIntensity={0.15}
