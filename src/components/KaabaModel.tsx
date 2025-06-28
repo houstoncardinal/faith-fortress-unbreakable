@@ -147,7 +147,7 @@ const KaabaModel = ({ position = [0, 0, 0], rotation = [0, 0, 0] }: KaabaModelPr
         <meshStandardMaterial 
           color="#E6E6E6"
           metalness={0.05}
-          roughness={0.4
+          roughness={0.4}
         />
       </mesh>
 
