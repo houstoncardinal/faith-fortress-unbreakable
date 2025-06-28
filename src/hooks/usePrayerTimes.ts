@@ -106,7 +106,7 @@ export const usePrayerTimes = (): PrayerTimesHook => {
     if (currentPrayer && lastAzaanPrayer !== currentPrayer.name) {
       setLastAzaanPrayer(currentPrayer.name);
       
-      // Show azaan notification
+      // Show azaan notification with string description only
       toast({
         title: "🕌 Azaan - Time for Prayer",
         description: `${currentPrayer.arabic} - ${currentPrayer.name} Prayer Time - الله أكبر الله أكبر • Allahu Akbar`,
