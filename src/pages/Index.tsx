@@ -20,39 +20,35 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen pattern-islamic transition-colors duration-500 ${isDark ? 'dark' : ''}`}>
-      {/* Luxury Header with Islamic elegance */}
-      <header className="sticky top-0 z-50 bg-glass-gold shadow-xl border-b border-gold">
+    <div className={`min-h-screen bg-gradient-to-br from-background via-background to-primary/5 transition-colors duration-500 ${isDark ? 'dark' : ''}`}>
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-primary/10 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full gradient-kaaba flex items-center justify-center shadow-2xl animate-divine-pulse border-2 border-gold">
-                <span className="text-white font-arabic text-2xl text-shadow-gold">☪</span>
+              <div className="w-10 h-10 rounded-full gradient-islamic flex items-center justify-center shadow-lg">
+                <span className="text-white font-arabic text-xl">☪</span>
               </div>
               <div>
-                <h1 className="font-bold text-3xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-green via-islamic-gold to-islamic-green text-shadow-gold">
-                  Deen
-                </h1>
-                <p className="text-xs text-muted-foreground font-medium bg-gradient-to-r from-islamic-gold to-islamic-green bg-clip-text text-transparent">
-                  Your Sacred Islamic Companion
-                </p>
+                <h1 className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Deen</h1>
+                <p className="text-xs text-muted-foreground font-medium">Your Sacred Islamic Companion</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="hover:bg-glass-gold transition-all duration-300 border border-transparent hover:border-gold"
+                className="hover:bg-primary/10 transition-colors"
               >
-                {isDark ? <Sun className="w-5 h-5 text-islamic-gold" /> : <Moon className="w-5 h-5 text-islamic-green" />}
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-glass-gold transition-all duration-300 border border-transparent hover:border-gold">
-                <Settings className="w-5 h-5 text-islamic-green" />
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10 transition-colors">
+                <Settings className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="hover:bg-glass-gold transition-all duration-300 border border-transparent hover:border-gold">
-                <User className="w-5 h-5 text-islamic-green" />
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10 transition-colors">
+                <User className="w-5 h-5" />
               </Button>
             </div>
           </div>
@@ -61,22 +57,17 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Divine Welcome Section */}
+        {/* Welcome Section with Divine Blessing */}
         <div className="text-center mb-12 animate-fade-in">
-          <div className="relative">
-            <div className="absolute inset-0 animate-shimmer-gold rounded-2xl"></div>
-            <div className="relative bg-glass-gold p-8 rounded-2xl border-islamic shadow-2xl">
-              <div className="font-arabic text-6xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-green via-islamic-gold to-islamic-green mb-4 leading-relaxed text-shadow-gold animate-float-divine">
-                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
-              </div>
-              <div className="text-muted-foreground mb-3 font-medium text-lg">In the name of Allah, the Most Gracious, the Most Merciful</div>
-              <div className="font-arabic text-4xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-gold to-islamic-green mb-4 leading-relaxed text-shadow">
-                السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ
-              </div>
-              <p className="text-muted-foreground font-medium text-lg">Assalamu Alaikum wa Rahmatullahi wa Barakatuh</p>
-              <p className="text-sm text-muted-foreground mt-3 italic">May Allah's peace, mercy, and blessings be upon you</p>
-            </div>
+          <div className="font-arabic text-5xl text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary mb-4 leading-relaxed">
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
           </div>
+          <div className="text-muted-foreground mb-2 font-medium">In the name of Allah, the Most Gracious, the Most Merciful</div>
+          <div className="font-arabic text-3xl text-primary mb-3 leading-relaxed">
+            السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ
+          </div>
+          <p className="text-muted-foreground font-medium">Assalamu Alaikum wa Rahmatullahi wa Barakatuh</p>
+          <p className="text-sm text-muted-foreground mt-2 italic">May Allah's peace, mercy, and blessings be upon you</p>
         </div>
 
         {/* Notification Permission */}
@@ -84,11 +75,11 @@ const Index = () => {
           <NotificationPermission />
         </div>
 
-        {/* Luxury Grid */}
+        {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Prayer Times */}
+            {/* Prayer Times - Full Width */}
             <div id="prayer-times" className="animate-fade-in">
               <PrayerTimesCard />
             </div>
@@ -118,52 +109,47 @@ const Index = () => {
 
         {/* Divine Supplication Section */}
         <div className="mt-12 text-center animate-fade-in">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-islamic-gold/20 via-islamic-green/20 to-islamic-gold/20 rounded-2xl blur-xl"></div>
-            <div className="relative card-luxury p-10 rounded-2xl border-2 border-gold shadow-2xl">
-              <div className="font-arabic text-4xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-green via-islamic-gold to-islamic-green mb-6 leading-relaxed text-shadow-gold">
-                رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ
-              </div>
-              <p className="text-muted-foreground italic font-medium mb-3 text-lg">
-                "Our Lord, give us good in this world and good in the next world, and save us from the punishment of the Fire."
-              </p>
-              <p className="text-sm text-islamic-gold font-semibold">Surah Al-Baqarah (2:201)</p>
+          <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 p-8 rounded-2xl border border-primary/20 shadow-lg">
+            <div className="font-arabic text-3xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-4 leading-relaxed">
+              رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ
             </div>
+            <p className="text-muted-foreground italic font-medium mb-2">
+              "Our Lord, give us good in this world and good in the next world, and save us from the punishment of the Fire."
+            </p>
+            <p className="text-sm text-muted-foreground">Surah Al-Baqarah (2:201)</p>
           </div>
         </div>
 
         {/* Prophetic Wisdom */}
         <div className="mt-8 text-center animate-fade-in">
-          <div className="bg-glass-green p-8 rounded-xl border-2 border-islamic-green/30 shadow-xl">
-            <div className="font-arabic text-2xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-green to-islamic-gold mb-4 leading-relaxed text-shadow">
+          <div className="bg-gradient-to-r from-accent/5 to-primary/5 p-6 rounded-xl border border-accent/20">
+            <div className="font-arabic text-xl text-primary mb-3 leading-relaxed">
               إِنَّمَا بُعِثْتُ لِأُتَمِّمَ مَكَارِمَ الْأَخْلَاقِ
             </div>
-            <p className="text-sm text-muted-foreground italic mb-2 font-medium">
+            <p className="text-sm text-muted-foreground italic mb-1">
               "I was sent only to perfect good character."
             </p>
-            <p className="text-xs text-islamic-gold font-semibold">- Prophet Muhammad ﷺ</p>
+            <p className="text-xs text-muted-foreground">- Prophet Muhammad ﷺ</p>
           </div>
         </div>
       </main>
 
-      {/* Luxury Footer */}
-      <footer className="mt-16 border-t-2 border-gold bg-glass-gold pattern-kaaba">
-        <div className="container mx-auto px-4 py-10 text-center">
-          <div className="font-arabic text-3xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-green via-islamic-gold to-islamic-green mb-4 leading-relaxed text-shadow-gold">
+      {/* Footer with Blessed Conclusion */}
+      <footer className="mt-16 border-t border-primary/10 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div className="container mx-auto px-4 py-8 text-center">
+          <div className="font-arabic text-2xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-3 leading-relaxed">
             وَتَوَاصَوْا بِالْحَقِّ وَتَوَاصَوْا بِالصَّبْرِ
           </div>
-          <p className="text-sm text-muted-foreground mb-3 italic font-medium">
+          <p className="text-sm text-muted-foreground mb-2 italic">
             "And enjoin upon each other truth and enjoin upon each other patience."
           </p>
-          <div className="font-arabic text-xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-gold to-islamic-green mb-4 text-shadow">
+          <div className="font-arabic text-lg text-primary mb-3">
             بَارَكَ اللَّهُ فِيكُمْ
           </div>
-          <p className="text-sm text-muted-foreground mb-6 font-medium">May Allah bless you all</p>
-          <div className="border-t border-gold pt-4">
-            <p className="text-xs text-muted-foreground bg-gradient-to-r from-islamic-green to-islamic-gold bg-clip-text text-transparent font-medium">
-              Built with love and reverence for the Muslim Ummah • صُنِعَ بِحُبٍّ وَاحْتِرَامٍ لِلأُمَّةِ الإِسْلاَمِيَّة
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground mb-4">May Allah bless you all</p>
+          <p className="text-xs text-muted-foreground">
+            Built with love and reverence for the Muslim Ummah • صُنِعَ بِحُبٍّ وَاحْتِرَامٍ لِلأُمَّةِ الإِسْلاَمِيَّة
+          </p>
         </div>
       </footer>
 

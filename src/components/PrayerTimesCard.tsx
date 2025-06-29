@@ -10,65 +10,55 @@ const PrayerTimesCard = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   return (
-    <Card className={`card-luxury border-2 border-gold shadow-2xl transition-all duration-500 ${
-      isAzaanTime ? 'animate-blessed-glow' : 'animate-divine-pulse'
+    <Card className={`gradient-islamic text-white border-0 shadow-lg transition-all duration-500 ${
+      isAzaanTime ? 'animate-blessed-glow' : ''
     }`}>
-      <CardHeader className="pb-4 bg-gradient-islamic rounded-t-lg">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-3 text-xl text-white">
-            <div className="p-2 bg-white/20 rounded-full border border-gold">
-              <Clock className="w-6 h-6 text-islamic-gold" />
-            </div>
-            <span className="text-shadow-gold">Prayer Times</span>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Clock className="w-5 h-5" />
+            Prayer Times
           </CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="text-white/90 hover:text-white hover:bg-white/20 border border-transparent hover:border-gold transition-all duration-300"
+            className="text-white/80 hover:text-white hover:bg-white/10"
           >
-            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </Button>
         </div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-white/90">
-            <div className="p-1 bg-white/20 rounded-full">
-              <MapPin className="w-4 h-4 text-islamic-gold" />
-            </div>
-            <span className="font-medium">Current Location</span>
+          <div className="flex items-center gap-2 text-sm opacity-90">
+            <MapPin className="w-4 h-4" />
+            <span>Current Location</span>
           </div>
-          <div className="text-sm font-mono bg-white/20 px-3 py-2 rounded-lg border border-gold/50">
+          <div className="text-sm font-mono bg-white/10 px-2 py-1 rounded">
             {currentTime}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 p-6">
+      <CardContent className="space-y-4">
         {/* Next Prayer Highlight */}
         {nextPrayer && (
-          <div className={`relative overflow-hidden rounded-xl p-6 backdrop-blur-sm border-2 transition-all duration-300 ${
-            isAzaanTime 
-              ? 'border-islamic-gold bg-gradient-to-r from-islamic-gold/20 to-islamic-green/20 animate-shimmer-gold' 
-              : 'border-islamic-green/30 bg-glass-green'
-          }`}>
-            <div className="text-sm text-muted-foreground mb-3 font-medium">
+          <div className={`bg-white/15 rounded-lg p-4 backdrop-blur-sm border ${
+            isAzaanTime ? 'border-yellow-300/50 bg-yellow-500/20' : 'border-white/10'
+          } transition-all duration-300`}>
+            <div className="text-sm opacity-90 mb-2">
               {isAzaanTime ? "🕌 It's Prayer Time!" : "Next Prayer"}
             </div>
             <div className="flex justify-between items-center">
               <div>
-                <div className="font-bold text-2xl text-islamic-green mb-2">{nextPrayer.name}</div>
-                <div className="font-arabic text-3xl leading-relaxed text-transparent bg-clip-text bg-gradient-to-r from-islamic-gold to-islamic-green text-shadow">
-                  {nextPrayer.arabic}
-                </div>
+                <div className="font-semibold text-lg">{nextPrayer.name}</div>
+                <div className="font-arabic text-xl leading-relaxed">{nextPrayer.arabic}</div>
               </div>
               <div className="text-right">
-                <div className="text-4xl font-bold font-mono text-islamic-gold text-shadow-gold">
-                  {nextPrayer.time}
-                </div>
+                <div className="text-3xl font-bold font-mono">{nextPrayer.time}</div>
                 {!isAzaanTime && (
-                  <div className="text-sm text-muted-foreground font-medium">in {timeUntilNext}</div>
+                  <div className="text-sm opacity-75">in {timeUntilNext}</div>
                 )}
                 {isAzaanTime && (
-                  <div className="text-sm text-islamic-gold font-bold animate-pulse">
+                  <div className="text-sm text-yellow-200 font-medium animate-pulse">
                     Azaan Time
                   </div>
                 )}
@@ -78,47 +68,45 @@ const PrayerTimesCard = () => {
         )}
         
         {/* All Prayer Times Grid */}
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-2">
           {prayerTimes.map((prayer, index) => (
             <div 
               key={index} 
-              className={`flex justify-between items-center py-4 px-5 rounded-xl transition-all duration-200 border ${
+              className={`flex justify-between items-center py-3 px-4 rounded-lg transition-all duration-200 ${
                 prayer.passed 
-                  ? 'bg-glass border-islamic-green/20 opacity-70' 
+                  ? 'bg-white/5 opacity-60' 
                   : prayer.name === nextPrayer?.name 
-                    ? 'bg-glass-gold border-2 border-islamic-gold shadow-lg animate-divine-pulse' 
-                    : 'bg-glass-green border-islamic-green/30 hover:border-islamic-gold/50'
+                    ? 'bg-white/15 border border-white/20' 
+                    : 'bg-white/8'
               }`}
             >
-              <div className="flex items-center gap-4">
-                <div className={`w-3 h-3 rounded-full border-2 ${
-                  prayer.passed 
-                    ? 'bg-islamic-green border-islamic-green' 
-                    : 'bg-transparent border-islamic-gold animate-pulse'
+              <div className="flex items-center gap-3">
+                <div className={`w-2 h-2 rounded-full ${
+                  prayer.passed ? 'bg-green-400' : 'bg-white/40'
                 }`} />
                 <div>
-                  <div className="font-semibold text-lg text-islamic-green">{prayer.name}</div>
-                  <div className="font-arabic text-base text-transparent bg-clip-text bg-gradient-to-r from-islamic-gold to-islamic-green leading-relaxed">
+                  <div className="font-medium">{prayer.name}</div>
+                  <div className="font-arabic text-sm opacity-75 leading-relaxed">
                     {prayer.arabic}
                   </div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="font-mono font-bold text-xl text-islamic-gold">{prayer.time}</div>
+                <div className="font-mono font-semibold">{prayer.time}</div>
                 {prayer.passed && (
-                  <div className="text-xs text-islamic-green font-medium">✓ Completed</div>
+                  <div className="text-xs text-green-300">✓ Completed</div>
                 )}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Divine Reminder */}
-        <div className="bg-glass-gold rounded-xl p-6 text-center border-2 border-islamic-gold/50 shadow-lg">
-          <div className="font-arabic text-2xl text-transparent bg-clip-text bg-gradient-to-r from-islamic-green to-islamic-gold mb-3 leading-relaxed text-shadow">
+        {/* Islamic Prayer Reminder */}
+        <div className="bg-white/5 rounded-lg p-3 text-center border-t border-white/10">
+          <div className="font-arabic text-lg mb-1 leading-relaxed">
             وَأَقِمِ الصَّلَاةَ لِذِكْرِي
           </div>
-          <div className="text-sm text-muted-foreground italic font-medium">
+          <div className="text-xs opacity-75 italic">
             "And establish prayer for My remembrance" - Quran 20:14
           </div>
         </div>
