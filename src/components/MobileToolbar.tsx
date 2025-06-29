@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import { Clock, Book, Navigation, Calendar, Heart, Settings } from 'lucide-react';
+import { Clock, Book, Navigation, Calendar, Heart, Settings, MessageSquareHeart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Link } from 'react-router-dom';
 
 const MobileToolbar = () => {
   const [activeSection, setActiveSection] = useState<string>('prayer');
@@ -92,10 +93,12 @@ const MobileToolbar = () => {
                     <Settings className="w-5 h-5" />
                     <span className="text-sm">Settings</span>
                   </Button>
-                  <Button variant="outline" className="h-16 flex flex-col gap-2">
-                    <Heart className="w-5 h-5" />
-                    <span className="text-sm">Favorites</span>
-                  </Button>
+                  <Link to="/duas">
+                    <Button variant="outline" className="h-16 flex flex-col gap-2 w-full">
+                      <MessageSquareHeart className="w-5 h-5" />
+                      <span className="text-sm">Duas</span>
+                    </Button>
+                  </Link>
                 </div>
                 <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-4 rounded-lg text-center">
                   <div className="font-arabic text-lg text-primary mb-2">

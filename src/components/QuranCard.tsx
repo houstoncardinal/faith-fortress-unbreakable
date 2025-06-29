@@ -1,7 +1,8 @@
 
-import { Book, Heart } from "lucide-react";
+import { Book, Heart, MessageSquareHeart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const QuranCard = () => {
   return (
@@ -33,6 +34,15 @@ const QuranCard = () => {
           <Button size="sm" className="flex-1 gradient-islamic border-0">
             Read More
           </Button>
+        </div>
+        
+        <div className="pt-2 border-t border-primary/10">
+          <Link to="/duas">
+            <Button variant="outline" size="sm" className="w-full gap-2">
+              <MessageSquareHeart className="w-4 h-4" />
+              Explore Duas & Supplications
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
