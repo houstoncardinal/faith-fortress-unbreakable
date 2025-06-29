@@ -10,6 +10,7 @@ import IslamicCalendar from "@/components/IslamicCalendar";
 import DailyHadith from "@/components/DailyHadith";
 import NotificationPermission from "@/components/NotificationPermission";
 import MobileToolbar from "@/components/MobileToolbar";
+import GuidedPrayerLauncher from "@/components/GuidedPrayerLauncher";
 
 const Index = () => {
   const [isDark, setIsDark] = useState(false);
@@ -82,6 +83,11 @@ const Index = () => {
             {/* Prayer Times - Full Width */}
             <div id="prayer-times" className="animate-fade-in">
               <PrayerTimesCard />
+            </div>
+            
+            {/* Guided Prayer Sessions - New Feature */}
+            <div className="animate-fade-in">
+              <GuidedPrayerLauncher />
             </div>
             
             {/* Quran and Hadith Row */}
