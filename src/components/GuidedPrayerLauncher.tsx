@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Play, BookOpen, Users, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import GuidedPrayerSession from './GuidedPrayerSession';
 import { getPrayerGuide, PrayerGuide } from '@/data/prayerGuides';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
@@ -134,6 +134,9 @@ const GuidedPrayerLauncher = () => {
                           <span>Start Guided {prayer.name}?</span>
                           <span className="font-arabic text-primary">{prayer.arabic}</span>
                         </DialogTitle>
+                        <DialogDescription>
+                          Begin your guided prayer session with step-by-step instructions, proper positioning, and Arabic recitations with translations.
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div className="bg-primary/5 p-4 rounded-lg">

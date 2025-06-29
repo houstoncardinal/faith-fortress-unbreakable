@@ -29,29 +29,33 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(prayerSteps[0]?.duration || 0);
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
   const intervalRef = useRef<NodeJS.Timeout>();
   const { toast } = useToast();
 
   const currentPrayerStep = prayerSteps[currentStep];
 
+  // Initialize time remaining when step changes
   useEffect(() => {
     if (currentPrayerStep) {
       setTimeRemaining(currentPrayerStep.duration);
       setProgress(0);
+      console.log(`Starting step ${currentStep + 1}: ${currentPrayerStep.transliteration}`);
     }
   }, [currentStep, currentPrayerStep]);
 
+  // Handle timer and progress
   useEffect(() => {
-    if (isPlaying && timeRemaining > 0) {
+    if (isPlaying && timeRemaining > 0 && currentPrayerStep) {
       intervalRef.current = setInterval(() => {
         setTimeRemaining(prev => {
-          if (prev <= 1) {
+          const newTime = prev - 1;
+          if (newTime <= 0) {
             handleNextStep();
             return 0;
           }
-          return prev - 1;
+          return newTime;
         });
         setProgress(prev => {
           const newProgress = ((currentPrayerStep.duration - timeRemaining + 1) / currentPrayerStep.duration) * 100;
@@ -72,22 +76,22 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
   }, [isPlaying, timeRemaining, currentPrayerStep]);
 
   const handlePlayPause = () => {
+    console.log(`${isPlaying ? 'Pausing' : 'Playing'} step ${currentStep + 1}`);
     setIsPlaying(!isPlaying);
     
-    if (!isMuted && currentPrayerStep.audioFile) {
-      if (audioRef.current) {
-        if (isPlaying) {
-          audioRef.current.pause();
-        } else {
-          audioRef.current.play().catch(() => {
-            // Silent fail if audio doesn't exist
-          });
-        }
+    if (!isMuted && currentPrayerStep?.audioFile && audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch((error) => {
+          console.log('Audio playback failed:', error);
+        });
       }
     }
   };
 
   const handleNextStep = () => {
+    console.log(`Moving to next step. Current: ${currentStep}, Total: ${prayerSteps.length}`);
     if (currentStep < prayerSteps.length - 1) {
       setCurrentStep(prev => prev + 1);
       setIsPlaying(false);
@@ -98,12 +102,14 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
 
   const handlePrevStep = () => {
     if (currentStep > 0) {
+      console.log(`Moving to previous step. Current: ${currentStep}`);
       setCurrentStep(prev => prev - 1);
       setIsPlaying(false);
     }
   };
 
   const handleComplete = () => {
+    console.log(`Prayer ${prayerName} completed successfully`);
     setIsPlaying(false);
     toast({
       title: "🤲 Prayer Completed",
@@ -114,6 +120,7 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
   };
 
   const handleRestart = () => {
+    console.log(`Restarting prayer ${prayerName}`);
     setCurrentStep(0);
     setIsPlaying(false);
     setProgress(0);
@@ -146,7 +153,11 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
     }
   };
 
-  if (!currentPrayerStep) return null;
+  // Safety check - return null if no current step
+  if (!currentPrayerStep) {
+    console.error('No current prayer step available');
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary/20 via-background to-accent/20 backdrop-blur-xl">

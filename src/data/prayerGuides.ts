@@ -169,7 +169,6 @@ export const prayerGuides: Record<string, PrayerGuide> = {
         duration: 5,
         position: 'standing'
       },
-      // ... More steps would be added for a complete 4-rakat prayer
       {
         id: 2,
         arabic: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
@@ -178,8 +177,215 @@ export const prayerGuides: Record<string, PrayerGuide> = {
         instruction: "Recite Al-Fatiha in the first Rakat.",
         duration: 10,
         position: 'standing'
+      },
+      {
+        id: 3,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Say Takbir and bow for Ruku.",
+        duration: 3,
+        position: 'bowing'
+      },
+      {
+        id: 4,
+        arabic: "سُبْحَانَ رَبِّيَ الْعَظِيمِ",
+        transliteration: "Subhana Rabbiyal Adheem",
+        translation: "Glory be to my Lord, the Magnificent",
+        instruction: "In Ruku, say this dhikr at least 3 times.",
+        duration: 8,
+        position: 'bowing'
+      },
+      {
+        id: 5,
+        arabic: "سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ",
+        transliteration: "Sami Allahu liman hamidah",
+        translation: "Allah hears those who praise Him",
+        instruction: "Rise from Ruku and stand straight.",
+        duration: 3,
+        position: 'standing'
+      },
+      {
+        id: 6,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Go down for the first Sujud.",
+        duration: 3,
+        position: 'prostrating'
+      },
+      {
+        id: 7,
+        arabic: "سُبْحَانَ رَبِّيَ الْأَعْلَىٰ",
+        transliteration: "Subhana Rabbiyal A'la",
+        translation: "Glory be to my Lord, the Most High",
+        instruction: "In Sujud, say this dhikr at least 3 times.",
+        duration: 8,
+        position: 'prostrating'
+      },
+      {
+        id: 8,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Sit between the two prostrations.",
+        duration: 3,
+        position: 'sitting'
+      },
+      {
+        id: 9,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Go down for the second Sujud.",
+        duration: 3,
+        position: 'prostrating'
+      },
+      {
+        id: 10,
+        arabic: "سُبْحَانَ رَبِّيَ الْأَعْلَىٰ",
+        transliteration: "Subhana Rabbiyal A'la",
+        translation: "Glory be to my Lord, the Most High",
+        instruction: "In the second Sujud, repeat the dhikr.",
+        duration: 8,
+        position: 'prostrating'
+      },
+      {
+        id: 11,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Rise for the second Rakat. First Rakat complete.",
+        duration: 3,
+        position: 'standing'
+      },
+      {
+        id: 12,
+        arabic: "التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ",
+        transliteration: "At-tahiyyatu lillahi was-salawatu wat-tayyibat",
+        translation: "All greetings, prayers and pure words are due to Allah",
+        instruction: "After 2 Rakats, sit for the middle Tashahhud.",
+        duration: 10,
+        position: 'sitting'
+      },
+      {
+        id: 13,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Rise for the third Rakat. Continue silently for remaining Rakats.",
+        duration: 3,
+        position: 'standing'
+      },
+      {
+        id: 14,
+        arabic: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        transliteration: "Alhamdu lillahi rabbil alameen",
+        translation: "All praise is due to Allah, Lord of all the worlds",
+        instruction: "Recite Al-Fatiha silently in the third Rakat.",
+        duration: 8,
+        position: 'standing'
+      },
+      {
+        id: 15,
+        arabic: "التَّحِيَّاتُ لِلَّهِ وَالصَّلَوَاتُ وَالطَّيِّبَاتُ",
+        transliteration: "At-tahiyyatu lillahi was-salawatu wat-tayyibat",
+        translation: "All greetings, prayers and pure words are due to Allah",
+        instruction: "After completing all 4 Rakats, sit for final Tashahhud.",
+        duration: 15,
+        position: 'sitting'
+      },
+      {
+        id: 16,
+        arabic: "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ",
+        transliteration: "Assalamu alaikum wa rahmatullah",
+        translation: "Peace be upon you and the mercy of Allah",
+        instruction: "Turn your head to the right and give Salam, then to the left and repeat. Prayer complete.",
+        duration: 5,
+        position: 'sitting'
       }
-      // Additional steps would continue here...
+    ]
+  },
+
+  asr: {
+    name: "Asr",
+    arabicName: "العصر", 
+    description: "The Afternoon Prayer - 4 Rakats",
+    totalRakats: 4,
+    steps: [
+      {
+        id: 1,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Begin Asr prayer with Takbir. This prayer is performed silently after the first 2 Rakats.",
+        duration: 5,
+        position: 'standing'
+      },
+      // ... Additional steps would follow the same pattern as Dhuhr
+      {
+        id: 2,
+        arabic: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        transliteration: "Alhamdu lillahi rabbil alameen", 
+        translation: "All praise is due to Allah, Lord of all the worlds",
+        instruction: "Recite Al-Fatiha for the first Rakat.",
+        duration: 10,
+        position: 'standing'
+      }
+    ]
+  },
+
+  maghrib: {
+    name: "Maghrib",
+    arabicName: "المغرب",
+    description: "The Sunset Prayer - 3 Rakats", 
+    totalRakats: 3,
+    steps: [
+      {
+        id: 1,
+        arabic: "اللَّهُ أَكْبَرُ",
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest", 
+        instruction: "Begin Maghrib prayer with Takbir. First 2 Rakats are recited aloud, third is silent.",
+        duration: 5,
+        position: 'standing'
+      },
+      {
+        id: 2,
+        arabic: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        transliteration: "Alhamdu lillahi rabbil alameen",
+        translation: "All praise is due to Allah, Lord of all the worlds",
+        instruction: "Recite Al-Fatiha aloud for the first Rakat.",
+        duration: 10,
+        position: 'standing'
+      }
+    ]
+  },
+
+  isha: {
+    name: "Isha", 
+    arabicName: "العشاء",
+    description: "The Night Prayer - 4 Rakats",
+    totalRakats: 4,
+    steps: [
+      {
+        id: 1,
+        arabic: "اللَّهُ أَكْبَرُ", 
+        transliteration: "Allahu Akbar",
+        translation: "Allah is the Greatest",
+        instruction: "Begin Isha prayer with Takbir. First 2 Rakats are recited aloud, last 2 are silent.",
+        duration: 5,
+        position: 'standing'
+      },
+      {
+        id: 2,
+        arabic: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ",
+        transliteration: "Alhamdu lillahi rabbil alameen",
+        translation: "All praise is due to Allah, Lord of all the worlds", 
+        instruction: "Recite Al-Fatiha aloud for the first Rakat.",
+        duration: 10,
+        position: 'standing'
+      }
     ]
   }
 };
