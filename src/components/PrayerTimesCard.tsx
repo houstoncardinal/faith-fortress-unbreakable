@@ -6,7 +6,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useState } from "react";
 
 const PrayerTimesCard = () => {
-  const { prayerTimes, nextPrayer, timeUntilNext, currentTime, isAzaanTime } = usePrayerTimes();
+  const { prayerTimes, nextPrayer, timeUntilNext, currentTime, isAzaanTime, location, accuracy } = usePrayerTimes();
   const [soundEnabled, setSoundEnabled] = useState(true);
 
   return (
@@ -31,7 +31,10 @@ const PrayerTimesCard = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm opacity-90">
             <MapPin className="w-4 h-4" />
-            <span>Current Location</span>
+            <span>
+              {location ? `${location.timezone}` : 'Getting location...'}
+              {accuracy && accuracy > 0 && ` (±${Math.round(accuracy)}m)`}
+            </span>
           </div>
           <div className="text-sm font-mono bg-white/10 px-2 py-1 rounded">
             {currentTime}
