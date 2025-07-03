@@ -56,8 +56,22 @@ const Index = () => {
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 md:gap-4">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-full gradient-islamic flex items-center justify-center shadow-lg">
-                <span className="text-white font-arabic text-lg md:text-xl">☪</span>
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center shadow-lg relative overflow-hidden">
+                {/* Islamic Geometric Pattern */}
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                <svg
+                  className="w-5 h-5 md:w-6 md:h-6 text-white relative z-10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Professional Islamic star pattern */}
+                  <g stroke="currentColor" strokeWidth="1.5" fill="none">
+                    <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" fill="currentColor" opacity="0.8"/>
+                    <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="1"/>
+                    <path d="M12 8V6M12 18V16M16 12H18M6 12H8" strokeLinecap="round"/>
+                  </g>
+                </svg>
               </div>
               <div>
                 <h1 className="font-bold text-xl md:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Deen</h1>
