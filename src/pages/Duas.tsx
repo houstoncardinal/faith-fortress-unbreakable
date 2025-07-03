@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { Heart, Search, Book, ArrowLeft, Copy, Share } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -149,8 +150,38 @@ const Duas = () => {
     }
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Islamic Duas & Supplications",
+    "description": "Comprehensive collection of authentic Islamic duas and supplications for every life situation with Arabic text, transliteration, and translation",
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": duasData.map((dua, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Article",
+          "name": dua.title,
+          "description": dua.translation,
+          "inLanguage": ["ar", "en"],
+          "text": dua.arabic
+        }
+      }))
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <>
+      <SEOHead
+        title="Islamic Duas & Supplications | Authentic Prayer Collection | Deen App"
+        description="Discover authentic Islamic duas and supplications for every life situation. Complete collection with Arabic text, transliteration, and English translation. Perfect for daily prayers, stress relief, travel, studies, and more."
+        keywords="Islamic duas, Muslim supplications, Arabic prayers, Islamic prayer collection, daily duas, travel duas, study prayers, anxiety relief prayers, authentic supplications, Quran duas"
+        ogImage="/src/assets/og-duas.jpg"
+        canonical="https://deen-app.com/duas"
+        structuredData={structuredData}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-primary/10 shadow-sm">
         <div className="container mx-auto px-4 py-4">
@@ -307,7 +338,8 @@ const Duas = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

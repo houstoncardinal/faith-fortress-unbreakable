@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { Moon, Sun, User, Settings } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import PrayerTimesCard from "@/components/PrayerTimesCard";
 import QuranCard from "@/components/QuranCard";
@@ -20,8 +21,35 @@ const Index = () => {
     document.documentElement.classList.toggle('dark');
   };
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Deen - Your Ultimate Islamic Companion",
+    "description": "The ultimate Muslim app to strengthen your deen with prayer times, Quran, dhikr counter, Qibla direction, and Islamic calendar",
+    "applicationCategory": "ReligiousApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Deen App"
+    }
+  };
+
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-background via-background to-primary/5 transition-colors duration-500 ${isDark ? 'dark' : ''}`}>
+    <>
+      <SEOHead
+        title="Deen - Your Ultimate Islamic Companion | Prayer Times, Quran & More"
+        description="Strengthen your faith with comprehensive Islamic features: accurate prayer times, Quran verses, dhikr counter, Qibla direction, Islamic calendar, and guided prayers. The ultimate Muslim companion app."
+        keywords="Islamic app, prayer times, Quran, dhikr counter, Muslim app, Islamic calendar, Qibla direction, duas, prayer guide, Islamic companion, Muslim prayers, salah times"
+        ogImage="/src/assets/og-main.jpg"
+        canonical="https://deen-app.com"
+        structuredData={structuredData}
+      />
+      <div className={`min-h-screen bg-gradient-to-br from-background via-background to-primary/5 transition-colors duration-500 ${isDark ? 'dark' : ''}`}>
       {/* Mobile-optimized Header */}
       <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-xl border-b border-primary/10 shadow-sm safe-area-pt">
         <div className="container mx-auto px-4 py-3 md:py-4">
@@ -161,7 +189,8 @@ const Index = () => {
 
       {/* Mobile Toolbar */}
       <MobileToolbar />
-    </div>
+      </div>
+    </>
   );
 };
 
