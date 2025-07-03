@@ -12,6 +12,7 @@ import DailyHadith from "@/components/DailyHadith";
 import NotificationPermission from "@/components/NotificationPermission";
 import MobileToolbar from "@/components/MobileToolbar";
 import GuidedPrayerLauncher from "@/components/GuidedPrayerLauncher";
+import LuxuryDigitalClock from "@/components/LuxuryDigitalClock";
 
 const Index = () => {
   const [isDark, setIsDark] = useState(false);
@@ -129,6 +130,10 @@ const Index = () => {
 
           {/* Right Column - Mobile Stacked */}
           <div className="space-y-6 md:space-y-8">
+            {/* Luxury Digital Clock */}
+            <div className="animate-fade-in">
+              <LuxuryDigitalClock />
+            </div>
             <div id="dhikr-section" className="animate-fade-in">
               <DhikrCounter />
             </div>
