@@ -46,44 +46,80 @@ const EnhancedQiblaCompass = () => {
 
   // Handle device orientation
   useEffect(() => {
-    if (!window.DeviceOrientationEvent) return;
+    console.log('🧭 iOS Debug: Setting up device orientation...');
+    console.log('🧭 iOS Debug: DeviceOrientationEvent exists:', !!window.DeviceOrientationEvent);
+    console.log('🧭 iOS Debug: User agent:', navigator.userAgent);
+    
+    if (!window.DeviceOrientationEvent) {
+      console.log('❌ iOS Debug: DeviceOrientationEvent not supported');
+      setError('Device orientation not supported on this device');
+      return;
+    }
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
+      console.log('🧭 iOS Debug: Orientation event received:', {
+        alpha: event.alpha,
+        beta: event.beta,
+        gamma: event.gamma,
+        absolute: event.absolute
+      });
+      
       if (event.alpha !== null) {
         let heading = event.alpha + settings.magneticDeclination + settings.calibrationOffset;
         heading = ((heading % 360) + 360) % 360;
         
+        console.log('🧭 iOS Debug: Calculated heading:', heading);
         setDeviceHeading(heading);
         
         if (settings.compassSmoothing) {
-          setSmoothedHeading(prev => smoothHeading(heading, prev, 1 - settings.smoothingFactor));
+          setSmoothedHeading(prev => {
+            const smoothed = smoothHeading(heading, prev, 1 - settings.smoothingFactor);
+            console.log('🧭 iOS Debug: Smoothed heading:', smoothed);
+            return smoothed;
+          });
         } else {
           setSmoothedHeading(heading);
         }
+      } else {
+        console.log('❌ iOS Debug: Alpha is null - no compass data');
       }
     };
 
     // Request permission for iOS
     const requestPermission = async () => {
+      console.log('🧭 iOS Debug: Checking if permission request is needed...');
+      
       if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+        console.log('🧭 iOS Debug: iOS 13+ detected, requesting permission...');
         try {
           const permission = await (DeviceOrientationEvent as any).requestPermission();
+          console.log('🧭 iOS Debug: Permission result:', permission);
+          
           if (permission === 'granted') {
+            console.log('✅ iOS Debug: Permission granted, adding event listener');
             window.addEventListener('deviceorientation', handleOrientation, true);
             orientationListenerRef.current = handleOrientation;
+            setError(null);
+          } else {
+            console.log('❌ iOS Debug: Permission denied');
+            setError('Motion & Orientation access denied. Please enable in Settings > Safari > Motion & Orientation Access');
           }
         } catch (error) {
-          console.error('Error requesting device orientation permission:', error);
+          console.error('❌ iOS Debug: Error requesting permission:', error);
+          setError('Failed to request motion permission. Please try again.');
         }
       } else {
+        console.log('🧭 iOS Debug: No permission needed, adding event listener');
         window.addEventListener('deviceorientation', handleOrientation, true);
         orientationListenerRef.current = handleOrientation;
+        setError(null);
       }
     };
 
     requestPermission();
 
     return () => {
+      console.log('🧭 iOS Debug: Cleaning up event listener');
       if (orientationListenerRef.current) {
         window.removeEventListener('deviceorientation', orientationListenerRef.current, true);
       }
@@ -212,17 +248,37 @@ const EnhancedQiblaCompass = () => {
   }, [qiblaArrowRotation, settings.vibrationFeedback, settings.voiceAnnouncements, lastVibration]);
 
   const handleCalibrate = async () => {
+    console.log('🔧 iOS Debug: Starting calibration process...');
     setIsCalibrating(true);
     
-    // Request orientation permission if needed
+    // For iOS, we need to explicitly request permission again during calibration
     if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-      await (DeviceOrientationEvent as any).requestPermission();
+      console.log('🔧 iOS Debug: Requesting permission during calibration...');
+      try {
+        const permission = await (DeviceOrientationEvent as any).requestPermission();
+        console.log('🔧 iOS Debug: Calibration permission result:', permission);
+        
+        if (permission !== 'granted') {
+          setError('Motion permission required for calibration. Please enable in Settings > Safari > Motion & Orientation Access');
+          setIsCalibrating(false);
+          return;
+        }
+      } catch (error) {
+        console.error('🔧 iOS Debug: Calibration permission error:', error);
+        setError('Failed to get motion permission. Please try again.');
+        setIsCalibrating(false);
+        return;
+      }
     }
     
     // Reset smoothed heading
+    console.log('🔧 iOS Debug: Resetting smoothed heading to:', deviceHeading);
     setSmoothedHeading(deviceHeading);
     
-    setTimeout(() => setIsCalibrating(false), 2000);
+    setTimeout(() => {
+      console.log('🔧 iOS Debug: Calibration complete');
+      setIsCalibrating(false);
+    }, 2000);
   };
 
   const renderCompass = () => {
