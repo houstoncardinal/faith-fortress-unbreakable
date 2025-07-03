@@ -75,7 +75,6 @@ export const useTextToSpeech = ({ apiKey }: UseTextToSpeechProps = {}) => {
             style: 0.2,
             use_speaker_boost: true,
           },
-          language_code: LANGUAGE_CODES[language],
         }),
         signal: abortControllerRef.current.signal,
       });
