@@ -1,10 +1,12 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, ChevronLeft, ChevronRight, X, Languages } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { useTextToSpeech, Language } from '@/hooks/useTextToSpeech';
+import AudioSettings from './AudioSettings';
 
 interface PrayerStep {
   id: number;
@@ -27,12 +29,26 @@ interface GuidedPrayerSessionProps {
 const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: GuidedPrayerSessionProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [showAudioSettings, setShowAudioSettings] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout>();
   const { toast } = useToast();
+  
+  // Text-to-Speech integration
+  const {
+    speak,
+    stop: stopTTS,
+    isLoading: isTTSLoading,
+    isPlaying: isTTSPlaying,
+    currentLanguage,
+    setLanguage,
+    error: ttsError,
+    setError: setTTSError,
+    apiKeyInput,
+    setApiKeyInput,
+    availableLanguages,
+  } = useTextToSpeech();
 
   const currentPrayerStep = prayerSteps[currentStep];
 
@@ -75,18 +91,38 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
     };
   }, [isPlaying, timeRemaining, currentPrayerStep]);
 
-  const handlePlayPause = () => {
+  const handlePlayPause = async () => {
     console.log(`${isPlaying ? 'Pausing' : 'Playing'} step ${currentStep + 1}`);
-    setIsPlaying(!isPlaying);
     
-    if (!isMuted && currentPrayerStep?.audioFile && audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch((error) => {
-          console.log('Audio playback failed:', error);
+    if (isPlaying || isTTSPlaying) {
+      // Stop everything
+      setIsPlaying(false);
+      stopTTS();
+    } else {
+      // Start the step timer
+      setIsPlaying(true);
+      
+      // Start TTS for current step if API key is available
+      if (apiKeyInput && currentPrayerStep) {
+        const textToSpeak = getTextForLanguage(currentPrayerStep, currentLanguage);
+        await speak({
+          text: textToSpeak,
+          language: currentLanguage,
         });
       }
+    }
+  };
+
+  const getTextForLanguage = (step: PrayerStep, language: Language): string => {
+    switch (language) {
+      case 'arabic':
+        return step.arabic;
+      case 'urdu':
+        // For Urdu, we'll use transliteration as a fallback since we don't have Urdu text
+        return step.transliteration;
+      case 'english':
+      default:
+        return step.translation;
     }
   };
 
@@ -126,12 +162,17 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
     setProgress(0);
   };
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
+  // Show TTS error in toast if exists
+  useEffect(() => {
+    if (ttsError) {
+      toast({
+        title: "Audio Error",
+        description: ttsError,
+        variant: "destructive",
+      });
+      setTTSError(null);
     }
-  };
+  }, [ttsError, toast, setTTSError]);
 
   const getPositionIcon = (position: string) => {
     switch (position) {
@@ -161,14 +202,17 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
 
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-primary/20 via-background to-accent/20 backdrop-blur-xl overflow-y-auto">
-      {/* Audio element */}
-      {currentPrayerStep.audioFile && (
-        <audio
-          ref={audioRef}
-          src={currentPrayerStep.audioFile}
-          muted={isMuted}
-          onEnded={() => setIsPlaying(false)}
-        />
+      {/* Audio Settings - Show initially if no API key */}
+      {(!apiKeyInput || showAudioSettings) && (
+        <div className="fixed top-20 left-4 right-4 z-20 max-w-md mx-auto">
+          <AudioSettings
+            currentLanguage={currentLanguage}
+            onLanguageChange={setLanguage}
+            apiKeyInput={apiKeyInput}
+            setApiKeyInput={setApiKeyInput}
+            availableLanguages={availableLanguages}
+          />
+        </div>
       )}
 
       {/* Mobile-optimized Header */}
@@ -192,8 +236,13 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
             </div>
             
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={toggleMute} className="p-2">
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowAudioSettings(!showAudioSettings)} 
+                className="p-2"
+              >
+                <Languages className="w-4 h-4" />
               </Button>
               <Button variant="ghost" size="sm" onClick={handleRestart} className="p-2">
                 <RotateCcw className="w-4 h-4" />
@@ -287,10 +336,25 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
             
             <Button
               onClick={handlePlayPause}
+              disabled={isTTSLoading}
               className="gap-2 gradient-islamic border-0 text-white px-6 py-3 text-base font-medium"
             >
-              {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-              {isPlaying ? 'Pause' : 'Start'}
+              {isTTSLoading ? (
+                <>
+                  <div className="w-5 h-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Loading...
+                </>
+              ) : isPlaying || isTTSPlaying ? (
+                <>
+                  <Pause className="w-5 h-5" />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5" />
+                  Start
+                </>
+              )}
             </Button>
             
             <Button 
