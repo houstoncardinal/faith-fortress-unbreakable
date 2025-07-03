@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import PrayerTimesCard from "@/components/PrayerTimesCard";
 import QuranCard from "@/components/QuranCard";
 import DhikrCounter from "@/components/DhikrCounter";
-import QiblaCompass from "@/components/QiblaCompass";
+import EnhancedQiblaCompass from "@/components/EnhancedQiblaCompass";
 import IslamicCalendar from "@/components/IslamicCalendar";
 import DailyHadith from "@/components/DailyHadith";
 import NotificationPermission from "@/components/NotificationPermission";
@@ -133,7 +133,7 @@ const Index = () => {
               <DhikrCounter />
             </div>
             <div id="qibla-section" className="animate-fade-in">
-              <QiblaCompass />
+              <EnhancedQiblaCompass />
             </div>
             <div id="calendar-section" className="animate-fade-in">
               <IslamicCalendar />
