@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import GuidedPrayerSession from './GuidedPrayerSession';
-import { getPrayerGuide, PrayerGuide } from '@/data/prayerGuides';
+import { getPrayerGuide, PrayerGuide } from '@/data/generatePrayerGuides';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 
 const GuidedPrayerLauncher = () => {

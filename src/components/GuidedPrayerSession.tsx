@@ -91,6 +91,16 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
     };
   }, [isPlaying, timeRemaining, currentPrayerStep]);
 
+  // Auto-speak on step change when playing
+  useEffect(() => {
+    if (isPlaying && currentPrayerStep) {
+      if (apiKeyInput) {
+        const textToSpeak = getTextForLanguage(currentPrayerStep, currentLanguage);
+        speak({ text: textToSpeak, language: currentLanguage });
+      }
+    }
+  }, [currentStep, isPlaying, currentLanguage, speak, apiKeyInput, currentPrayerStep]);
+
   const handlePlayPause = async () => {
     console.log(`${isPlaying ? 'Pausing' : 'Playing'} step ${currentStep + 1}`);
     
@@ -130,12 +140,12 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
     console.log(`Moving to next step. Current: ${currentStep}, Total: ${prayerSteps.length}`);
     if (currentStep < prayerSteps.length - 1) {
       setCurrentStep(prev => prev + 1);
-      setIsPlaying(false);
+      // Keep playing seamlessly into the next step
+      setIsPlaying(true);
     } else {
       handleComplete();
     }
   };
-
   const handlePrevStep = () => {
     if (currentStep > 0) {
       console.log(`Moving to previous step. Current: ${currentStep}`);
