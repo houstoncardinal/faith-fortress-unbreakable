@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export type Language = 'english' | 'arabic' | 'urdu';
 
@@ -35,11 +36,6 @@ export const useTextToSpeech = ({ apiKey }: UseTextToSpeechProps = {}) => {
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const speak = useCallback(async ({ text, language, voiceId }: TextToSpeechOptions) => {
-    if (!apiKeyInput) {
-      setError('Please enter your ElevenLabs API key');
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
 
@@ -58,51 +54,83 @@ export const useTextToSpeech = ({ apiKey }: UseTextToSpeechProps = {}) => {
 
     try {
       const selectedVoiceId = voiceId || VOICE_IDS[language];
-      
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': apiKeyInput,
-        },
-        body: JSON.stringify({
-          text,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.8,
-            style: 0.2,
-            use_speaker_boost: true,
+
+      if (apiKeyInput) {
+        // Direct call to ElevenLabs when user provides their own key
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'audio/mpeg',
+            'Content-Type': 'application/json',
+            'xi-api-key': apiKeyInput,
           },
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+          body: JSON.stringify({
+            text,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.8,
+              style: 0.2,
+              use_speaker_boost: true,
+            },
+          }),
+          signal: abortControllerRef.current.signal,
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail?.message || `HTTP error! status: ${response.status}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail?.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+
+        audio.onplay = () => setIsPlaying(true);
+        audio.onended = () => {
+          setIsPlaying(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+        audio.onerror = () => {
+          setError('Audio playback failed');
+          setIsPlaying(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        await audio.play();
+      } else {
+        // Use Supabase Edge Function with server-side secret
+        const { data, error: fnError } = await supabase.functions.invoke('tts', {
+          body: { text, language, voiceId: selectedVoiceId },
+        });
+        if (fnError) throw new Error(fnError.message || 'TTS service error');
+        if (!data?.audioContent) throw new Error('No audio returned');
+
+        // Decode base64 -> Blob
+        const binary = atob(data.audioContent as string);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const audioBlob = new Blob([bytes], { type: 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+
+        audio.onplay = () => setIsPlaying(true);
+        audio.onended = () => {
+          setIsPlaying(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+        audio.onerror = () => {
+          setError('Audio playback failed');
+          setIsPlaying(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        await audio.play();
       }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      
-      audio.onplay = () => setIsPlaying(true);
-      audio.onended = () => {
-        setIsPlaying(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-      audio.onerror = () => {
-        setError('Audio playback failed');
-        setIsPlaying(false);
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      await audio.play();
-      
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.error('Text-to-speech error:', error);

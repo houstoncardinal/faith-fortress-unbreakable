@@ -94,12 +94,10 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
   // Auto-speak on step change when playing
   useEffect(() => {
     if (isPlaying && currentPrayerStep) {
-      if (apiKeyInput) {
-        const textToSpeak = getTextForLanguage(currentPrayerStep, currentLanguage);
-        speak({ text: textToSpeak, language: currentLanguage });
-      }
+      const textToSpeak = getTextForLanguage(currentPrayerStep, currentLanguage);
+      speak({ text: textToSpeak, language: currentLanguage });
     }
-  }, [currentStep, isPlaying, currentLanguage, speak, apiKeyInput, currentPrayerStep]);
+  }, [currentStep, isPlaying, currentLanguage, speak, currentPrayerStep]);
 
   const handlePlayPause = async () => {
     console.log(`${isPlaying ? 'Pausing' : 'Playing'} step ${currentStep + 1}`);
@@ -112,8 +110,8 @@ const GuidedPrayerSession = ({ prayerName, prayerSteps, onComplete, onExit }: Gu
       // Start the step timer
       setIsPlaying(true);
       
-      // Start TTS for current step if API key is available
-      if (apiKeyInput && currentPrayerStep) {
+      // Start TTS for current step
+      if (currentPrayerStep) {
         const textToSpeak = getTextForLanguage(currentPrayerStep, currentLanguage);
         await speak({
           text: textToSpeak,
