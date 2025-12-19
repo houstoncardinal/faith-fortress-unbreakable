@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Moon, Sun, User, Settings } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
@@ -13,6 +12,8 @@ import NotificationPermission from "@/components/NotificationPermission";
 import MobileToolbar from "@/components/MobileToolbar";
 import GuidedPrayerLauncher from "@/components/GuidedPrayerLauncher";
 import LuxuryDigitalClock from "@/components/LuxuryDigitalClock";
+import KaabaExperience from "@/components/KaabaExperience";
+import IslamicLessons from "@/components/IslamicLessons";
 
 const Index = () => {
   const [isDark, setIsDark] = useState(false);
@@ -142,6 +143,16 @@ const Index = () => {
             {/* Prayer Times - Enhanced Desktop Layout */}
             <div id="prayer-times" className="animate-fade-in">
               <PrayerTimesCard />
+            </div>
+            
+            {/* 3D Kaaba Experience */}
+            <div className="animate-fade-in">
+              <KaabaExperience />
+            </div>
+            
+            {/* Islamic Lessons */}
+            <div className="animate-fade-in">
+              <IslamicLessons />
             </div>
             
             {/* Guided Prayer Sessions */}
