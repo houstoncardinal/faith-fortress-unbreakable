@@ -1,191 +1,273 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Stars, Float, Sparkles, Cloud } from '@react-three/drei';
+import { OrbitControls, Stars, Sparkles } from '@react-three/drei';
 import { useRef, useMemo, Suspense } from 'react';
 import * as THREE from 'three';
 
 // Accurate Kaaba dimensions (real proportions: 13.1m x 11.03m x 12.86m height)
-// Scaled down proportionally
-const KAABA_WIDTH = 2.62; // 13.1m scaled
-const KAABA_DEPTH = 2.21; // 11.03m scaled
-const KAABA_HEIGHT = 2.57; // 12.86m scaled
+// Scaled to 1 unit = 5m for comfortable viewing
+const SCALE = 0.2;
+const KAABA_WIDTH = 13.1 * SCALE;   // ~2.62
+const KAABA_DEPTH = 11.03 * SCALE;  // ~2.21
+const KAABA_HEIGHT = 12.86 * SCALE; // ~2.57
 
-// Kaaba Main Structure - Highly detailed
+// Ground level — everything sits ON this plane
+const GROUND_Y = 0;
+
+// ─── Procedural texture helpers ────────────────────────────────────────
+function useMarbleTexture(baseColor: string, veinColor: string, size = 512) {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+
+    // Base
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(0, 0, size, size);
+
+    // Marble veins
+    ctx.strokeStyle = veinColor;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 60; i++) {
+      ctx.beginPath();
+      let x = Math.random() * size;
+      let y = Math.random() * size;
+      ctx.moveTo(x, y);
+      for (let j = 0; j < 6; j++) {
+        x += (Math.random() - 0.5) * 80;
+        y += (Math.random() - 0.5) * 80;
+        ctx.lineTo(x, y);
+      }
+      ctx.globalAlpha = 0.15 + Math.random() * 0.15;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // Subtle grain
+    for (let i = 0; i < 4000; i++) {
+      const gx = Math.random() * size;
+      const gy = Math.random() * size;
+      ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.04})`;
+      ctx.fillRect(gx, gy, 1, 1);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 4);
+    return tex;
+  }, [baseColor, veinColor, size]);
+}
+
+function useKiswahTexture(size = 1024) {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+
+    // Deep black silk base
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, size, size);
+
+    // Subtle silk weave pattern
+    ctx.strokeStyle = 'rgba(20,20,20,0.6)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < size; i += 4) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(size, i);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, size);
+      ctx.stroke();
+    }
+
+    // Subtle sheen variation
+    for (let i = 0; i < 20; i++) {
+      const grd = ctx.createRadialGradient(
+        Math.random() * size, Math.random() * size, 0,
+        Math.random() * size, Math.random() * size, 80 + Math.random() * 120
+      );
+      grd.addColorStop(0, 'rgba(30,30,35,0.15)');
+      grd.addColorStop(1, 'rgba(5,5,5,0)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, size, size);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }, [size]);
+}
+
+function useGoldTexture(size = 512) {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+
+    // Gold base
+    const grd = ctx.createLinearGradient(0, 0, size, size);
+    grd.addColorStop(0, '#c9a227');
+    grd.addColorStop(0.3, '#d4af37');
+    grd.addColorStop(0.5, '#ffd700');
+    grd.addColorStop(0.7, '#d4af37');
+    grd.addColorStop(1, '#b8860b');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, size, size);
+
+    // Hammered metal texture
+    for (let i = 0; i < 2000; i++) {
+      const gx = Math.random() * size;
+      const gy = Math.random() * size;
+      ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.06})`;
+      ctx.fillRect(gx, gy, 2, 2);
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    return tex;
+  }, [size]);
+}
+
+// ─── Kaaba Main Structure ──────────────────────────────────────────────
 function KaabaStructure() {
-  const groupRef = useRef<THREE.Group>(null);
   const kiswahRef = useRef<THREE.Mesh>(null);
-  
+  const kiswahTex = useKiswahTexture();
+  const goldTex = useGoldTexture();
+
   useFrame((state) => {
-    // Subtle cloth movement simulation
     if (kiswahRef.current) {
-      const material = kiswahRef.current.material as THREE.MeshStandardMaterial;
-      material.displacementScale = 0.002 + Math.sin(state.clock.elapsedTime * 0.5) * 0.001;
+      const mat = kiswahRef.current.material as THREE.MeshStandardMaterial;
+      mat.displacementScale = 0.002 + Math.sin(state.clock.elapsedTime * 0.5) * 0.001;
     }
   });
 
+  // Kaaba bottom at GROUND_Y, center at GROUND_Y + height/2
+  const baseY = GROUND_Y + KAABA_HEIGHT / 2;
+
   return (
-    <group ref={groupRef} position={[0, KAABA_HEIGHT / 2 - 0.5, 0]}>
-      {/* Inner structure (stone) */}
+    <group position={[0, baseY, 0]}>
+      {/* Inner stone structure */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[KAABA_WIDTH - 0.02, KAABA_HEIGHT, KAABA_DEPTH - 0.02]} />
-        <meshStandardMaterial 
-          color="#1a1a1a"
-          roughness={0.95}
-          metalness={0.05}
-        />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.95} metalness={0.05} />
       </mesh>
-      
-      {/* Kiswah (black silk covering) - Front */}
-      <mesh ref={kiswahRef} position={[0, 0, KAABA_DEPTH / 2 + 0.01]} castShadow>
-        <planeGeometry args={[KAABA_WIDTH, KAABA_HEIGHT, 32, 32]} />
-        <meshStandardMaterial 
-          color="#050505"
-          roughness={0.7}
-          metalness={0.15}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      
-      {/* Kiswah - Back */}
-      <mesh position={[0, 0, -KAABA_DEPTH / 2 - 0.01]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[KAABA_WIDTH, KAABA_HEIGHT]} />
-        <meshStandardMaterial color="#050505" roughness={0.7} metalness={0.15} side={THREE.DoubleSide} />
-      </mesh>
-      
-      {/* Kiswah - Left */}
-      <mesh position={[-KAABA_WIDTH / 2 - 0.01, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[KAABA_DEPTH, KAABA_HEIGHT]} />
-        <meshStandardMaterial color="#050505" roughness={0.7} metalness={0.15} side={THREE.DoubleSide} />
-      </mesh>
-      
-      {/* Kiswah - Right */}
-      <mesh position={[KAABA_WIDTH / 2 + 0.01, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[KAABA_DEPTH, KAABA_HEIGHT]} />
-        <meshStandardMaterial color="#050505" roughness={0.7} metalness={0.15} side={THREE.DoubleSide} />
-      </mesh>
-      
-      {/* Hizam - Gold embroidered band (2/3 up the Kaaba) */}
-      <GoldBand position={[0, KAABA_HEIGHT * 0.17, 0]} width={KAABA_WIDTH} depth={KAABA_DEPTH} />
-      
+
+      {/* Kiswah — 4 sides with procedural silk texture */}
+      {[
+        { pos: [0, 0, KAABA_DEPTH / 2 + 0.01] as [number, number, number], rot: [0, 0, 0] as [number, number, number], size: [KAABA_WIDTH, KAABA_HEIGHT] as [number, number] },
+        { pos: [0, 0, -KAABA_DEPTH / 2 - 0.01] as [number, number, number], rot: [0, Math.PI, 0] as [number, number, number], size: [KAABA_WIDTH, KAABA_HEIGHT] as [number, number] },
+        { pos: [-KAABA_WIDTH / 2 - 0.01, 0, 0] as [number, number, number], rot: [0, -Math.PI / 2, 0] as [number, number, number], size: [KAABA_DEPTH, KAABA_HEIGHT] as [number, number] },
+        { pos: [KAABA_WIDTH / 2 + 0.01, 0, 0] as [number, number, number], rot: [0, Math.PI / 2, 0] as [number, number, number], size: [KAABA_DEPTH, KAABA_HEIGHT] as [number, number] },
+      ].map((side, i) => (
+        <mesh key={i} ref={i === 0 ? kiswahRef : undefined} position={side.pos} rotation={side.rot} castShadow>
+          <planeGeometry args={[side.size[0], side.size[1], 32, 32]} />
+          <meshStandardMaterial
+            map={kiswahTex}
+            color="#080808"
+            roughness={0.65}
+            metalness={0.18}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      ))}
+
+      {/* Hizam — gold embroidered band at 2/3 height */}
+      <GoldBand position={[0, KAABA_HEIGHT * 0.17, 0]} width={KAABA_WIDTH} depth={KAABA_DEPTH} goldTex={goldTex} />
+
       {/* Top gold trim */}
       <mesh position={[0, KAABA_HEIGHT / 2 - 0.05, 0]}>
         <boxGeometry args={[KAABA_WIDTH + 0.04, 0.08, KAABA_DEPTH + 0.04]} />
-        <meshStandardMaterial 
-          color="#c9a227"
-          roughness={0.25}
-          metalness={0.85}
-          emissive="#d4af37"
-          emissiveIntensity={0.15}
-        />
+        <meshStandardMaterial map={goldTex} color="#c9a227" roughness={0.25} metalness={0.85} emissive="#d4af37" emissiveIntensity={0.12} />
       </mesh>
-      
-      {/* Door of the Kaaba (Bab al-Kaaba) - Eastern wall */}
-      <KaabaDoor position={[0, -0.35, KAABA_DEPTH / 2 + 0.02]} />
-      
-      {/* Detailed calligraphy panels on each side */}
-      <CalligraphyPanels width={KAABA_WIDTH} depth={KAABA_DEPTH} height={KAABA_HEIGHT} />
-      
-      {/* Shadharwan (marble base/apron) */}
+
+      {/* Bottom gold trim */}
+      <mesh position={[0, -KAABA_HEIGHT / 2 + 0.04, 0]}>
+        <boxGeometry args={[KAABA_WIDTH + 0.04, 0.06, KAABA_DEPTH + 0.04]} />
+        <meshStandardMaterial map={goldTex} color="#b8860b" roughness={0.3} metalness={0.8} />
+      </mesh>
+
+      {/* Door (Bab al-Kaaba) — front face */}
+      <KaabaDoor position={[0, -0.35, KAABA_DEPTH / 2 + 0.02]} goldTex={goldTex} />
+
+      {/* Calligraphy panels */}
+      <CalligraphyPanels width={KAABA_WIDTH} depth={KAABA_DEPTH} height={KAABA_HEIGHT} goldTex={goldTex} />
+
+      {/* Shadharwan (marble apron at base) */}
       <Shadharwan width={KAABA_WIDTH} depth={KAABA_DEPTH} />
-      
-      {/* Meezab (golden rainwater spout) */}
-      <Meezab />
-      
-      {/* Hateem/Hijr Ismail */}
+
+      {/* Meezab (golden rainwater spout on roof) */}
+      <Meezab goldTex={goldTex} />
+
+      {/* Hijr Ismail (semi-circular wall) */}
       <HijrIsmail />
     </group>
   );
 }
 
-// Gold embroidered band around the Kaaba
-function GoldBand({ position, width, depth }: { position: [number, number, number], width: number, depth: number }) {
+// ─── Gold Band ─────────────────────────────────────────────────────────
+function GoldBand({ position, width, depth, goldTex }: { position: [number, number, number]; width: number; depth: number; goldTex: THREE.Texture }) {
   const bandHeight = 0.35;
-  
+  const sides = [
+    { pos: [0, 0, depth / 2 + 0.015] as [number, number, number], rot: [0, 0, 0] as [number, number, number], w: width },
+    { pos: [0, 0, -depth / 2 - 0.015] as [number, number, number], rot: [0, Math.PI, 0] as [number, number, number], w: width },
+    { pos: [-width / 2 - 0.015, 0, 0] as [number, number, number], rot: [0, -Math.PI / 2, 0] as [number, number, number], w: depth },
+    { pos: [width / 2 + 0.015, 0, 0] as [number, number, number], rot: [0, Math.PI / 2, 0] as [number, number, number], w: depth },
+  ];
+
   return (
     <group position={position}>
-      {/* Main gold band - all 4 sides */}
-      {/* Front */}
-      <mesh position={[0, 0, depth / 2 + 0.015]}>
-        <planeGeometry args={[width, bandHeight]} />
-        <meshStandardMaterial 
-          color="#b8860b"
-          roughness={0.3}
-          metalness={0.8}
-          emissive="#d4af37"
-          emissiveIntensity={0.1}
-        />
-      </mesh>
-      {/* Back */}
-      <mesh position={[0, 0, -depth / 2 - 0.015]} rotation={[0, Math.PI, 0]}>
-        <planeGeometry args={[width, bandHeight]} />
-        <meshStandardMaterial color="#b8860b" roughness={0.3} metalness={0.8} emissive="#d4af37" emissiveIntensity={0.1} />
-      </mesh>
-      {/* Left */}
-      <mesh position={[-width / 2 - 0.015, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[depth, bandHeight]} />
-        <meshStandardMaterial color="#b8860b" roughness={0.3} metalness={0.8} emissive="#d4af37" emissiveIntensity={0.1} />
-      </mesh>
-      {/* Right */}
-      <mesh position={[width / 2 + 0.015, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[depth, bandHeight]} />
-        <meshStandardMaterial color="#b8860b" roughness={0.3} metalness={0.8} emissive="#d4af37" emissiveIntensity={0.1} />
-      </mesh>
-      
-      {/* Quranic calligraphy detail lines */}
-      {[-0.12, 0, 0.12].map((y, i) => (
-        <mesh key={i} position={[0, y, depth / 2 + 0.02]}>
-          <planeGeometry args={[width * 0.9, 0.025]} />
-          <meshStandardMaterial color="#ffd700" roughness={0.2} metalness={0.9} />
-        </mesh>
+      {sides.map((s, i) => (
+        <group key={i}>
+          <mesh position={s.pos} rotation={s.rot}>
+            <planeGeometry args={[s.w, bandHeight]} />
+            <meshStandardMaterial map={goldTex} color="#b8860b" roughness={0.3} metalness={0.8} emissive="#d4af37" emissiveIntensity={0.1} />
+          </mesh>
+          {/* Calligraphy detail lines */}
+          {[-0.12, 0, 0.12].map((y, j) => (
+            <mesh key={j} position={[s.pos[0], s.pos[1] + y, s.pos[2] + (i < 2 ? 0.005 : 0)] as [number, number, number]} rotation={s.rot}>
+              <planeGeometry args={[s.w * 0.9, 0.02]} />
+              <meshStandardMaterial color="#ffd700" roughness={0.2} metalness={0.9} />
+            </mesh>
+          ))}
+        </group>
       ))}
     </group>
   );
 }
 
-// Detailed door with frame and curtain
-function KaabaDoor({ position }: { position: [number, number, number] }) {
-  const doorWidth = 0.42; // 2.1m scaled
-  const doorHeight = 0.68; // 3.4m scaled
-  
+// ─── Door ──────────────────────────────────────────────────────────────
+function KaabaDoor({ position, goldTex }: { position: [number, number, number]; goldTex: THREE.Texture }) {
+  const doorWidth = 0.42;
+  const doorHeight = 0.68;
+
   return (
     <group position={position}>
-      {/* Door frame - outer gold */}
+      {/* Outer gold frame */}
       <mesh position={[0, 0, 0.01]}>
         <boxGeometry args={[doorWidth + 0.15, doorHeight + 0.15, 0.03]} />
-        <meshStandardMaterial 
-          color="#d4af37"
-          roughness={0.2}
-          metalness={0.9}
-          emissive="#d4af37"
-          emissiveIntensity={0.2}
-        />
+        <meshStandardMaterial map={goldTex} color="#d4af37" roughness={0.2} metalness={0.9} emissive="#d4af37" emissiveIntensity={0.15} />
       </mesh>
-      
-      {/* Door frame - inner decorative border */}
+      {/* Inner decorative border */}
       <mesh position={[0, 0, 0.02]}>
         <boxGeometry args={[doorWidth + 0.08, doorHeight + 0.08, 0.02]} />
-        <meshStandardMaterial color="#b8860b" roughness={0.25} metalness={0.85} />
+        <meshStandardMaterial map={goldTex} color="#b8860b" roughness={0.25} metalness={0.85} />
       </mesh>
-      
       {/* Main door surface */}
       <mesh position={[0, 0, 0.025]}>
         <boxGeometry args={[doorWidth, doorHeight, 0.02]} />
-        <meshStandardMaterial 
-          color="#c9a227"
-          roughness={0.3}
-          metalness={0.85}
-          emissive="#d4af37"
-          emissiveIntensity={0.15}
-        />
+        <meshStandardMaterial map={goldTex} color="#c9a227" roughness={0.3} metalness={0.85} emissive="#d4af37" emissiveIntensity={0.12} />
       </mesh>
-      
-      {/* Door panels (decorative) */}
+      {/* Decorative panels */}
       {[-0.1, 0.1].map((x, i) => (
         <mesh key={i} position={[x, 0.1, 0.035]}>
           <boxGeometry args={[0.12, 0.35, 0.01]} />
           <meshStandardMaterial color="#ffd700" roughness={0.2} metalness={0.9} />
         </mesh>
       ))}
-      
       {/* Door handles */}
       {[-0.08, 0.08].map((x, i) => (
         <group key={i} position={[x, -0.15, 0.05]} rotation={[Math.PI / 2, 0, 0]}>
@@ -195,52 +277,33 @@ function KaabaDoor({ position }: { position: [number, number, number] }) {
           </mesh>
         </group>
       ))}
-      
       {/* Quranic inscription above door */}
       <mesh position={[0, doorHeight / 2 + 0.12, 0.02]}>
         <boxGeometry args={[doorWidth + 0.1, 0.12, 0.015]} />
-        <meshStandardMaterial color="#ffd700" roughness={0.2} metalness={0.9} emissive="#ffd700" emissiveIntensity={0.1} />
+        <meshStandardMaterial map={goldTex} color="#ffd700" roughness={0.2} metalness={0.9} emissive="#ffd700" emissiveIntensity={0.08} />
       </mesh>
-      
-      {/* Steps leading to door */}
+      {/* Steps leading to door — grounded relative to Kaaba base */}
       {[0, 1, 2].map((step) => (
         <mesh key={step} position={[0, -doorHeight / 2 - 0.05 - step * 0.08, 0.15 + step * 0.1]}>
           <boxGeometry args={[doorWidth + 0.3 + step * 0.1, 0.06, 0.08]} />
-          <meshStandardMaterial color="#f5f5f0" roughness={0.4} metalness={0.1} />
+          <meshStandardMaterial color="#e8e4d8" roughness={0.35} metalness={0.08} />
         </mesh>
       ))}
     </group>
   );
 }
 
-// Calligraphy panels
-function CalligraphyPanels({ width, depth, height }: { width: number, depth: number, height: number }) {
+// ─── Calligraphy Panels ────────────────────────────────────────────────
+function CalligraphyPanels({ width, depth, height, goldTex }: { width: number; depth: number; height: number; goldTex: THREE.Texture }) {
   const panelPositions = useMemo(() => {
-    const positions: { pos: [number, number, number], rot: [number, number, number], size: [number, number] }[] = [];
-    
-    // Front panels
+    const positions: { pos: [number, number, number]; rot: [number, number, number]; size: [number, number] }[] = [];
     for (let i = 0; i < 3; i++) {
-      positions.push({
-        pos: [-0.5 + i * 0.5, -height * 0.25, depth / 2 + 0.018],
-        rot: [0, 0, 0],
-        size: [0.35, 0.5]
-      });
+      positions.push({ pos: [-0.5 + i * 0.5, -height * 0.25, depth / 2 + 0.018], rot: [0, 0, 0], size: [0.35, 0.5] });
     }
-    
-    // Side panels (left and right)
     for (let i = 0; i < 2; i++) {
-      positions.push({
-        pos: [-width / 2 - 0.018, -height * 0.25, -0.3 + i * 0.6],
-        rot: [0, -Math.PI / 2, 0],
-        size: [0.35, 0.5]
-      });
-      positions.push({
-        pos: [width / 2 + 0.018, -height * 0.25, -0.3 + i * 0.6],
-        rot: [0, Math.PI / 2, 0],
-        size: [0.35, 0.5]
-      });
+      positions.push({ pos: [-width / 2 - 0.018, -height * 0.25, -0.3 + i * 0.6], rot: [0, -Math.PI / 2, 0], size: [0.35, 0.5] });
+      positions.push({ pos: [width / 2 + 0.018, -height * 0.25, -0.3 + i * 0.6], rot: [0, Math.PI / 2, 0], size: [0.35, 0.5] });
     }
-    
     return positions;
   }, [width, depth, height]);
 
@@ -248,25 +311,17 @@ function CalligraphyPanels({ width, depth, height }: { width: number, depth: num
     <>
       {panelPositions.map((panel, i) => (
         <group key={i} position={panel.pos} rotation={panel.rot}>
-          {/* Panel background */}
           <mesh>
             <planeGeometry args={panel.size} />
-            <meshStandardMaterial 
-              color="#0a0a0a"
-              roughness={0.8}
-              transparent
-              opacity={0.9}
-            />
+            <meshStandardMaterial color="#0a0a0a" roughness={0.8} transparent opacity={0.9} />
           </mesh>
-          {/* Gold border */}
           <mesh position={[0, 0, 0.001]}>
             <ringGeometry args={[panel.size[0] * 0.45, panel.size[0] * 0.48, 32]} />
-            <meshStandardMaterial color="#d4af37" roughness={0.3} metalness={0.8} />
+            <meshStandardMaterial map={goldTex} color="#d4af37" roughness={0.3} metalness={0.8} />
           </mesh>
-          {/* Inner calligraphy representation */}
           <mesh position={[0, 0, 0.002]}>
             <circleGeometry args={[panel.size[0] * 0.35, 32]} />
-            <meshStandardMaterial color="#c9a227" roughness={0.35} metalness={0.75} />
+            <meshStandardMaterial map={goldTex} color="#c9a227" roughness={0.35} metalness={0.75} />
           </mesh>
         </group>
       ))}
@@ -274,58 +329,45 @@ function CalligraphyPanels({ width, depth, height }: { width: number, depth: num
   );
 }
 
-// Shadharwan (marble base)
-function Shadharwan({ width, depth }: { width: number, depth: number }) {
+// ─── Shadharwan (marble base / apron) ──────────────────────────────────
+function Shadharwan({ width, depth }: { width: number; depth: number }) {
   return (
-    <group position={[0, -KAABA_HEIGHT / 2 - 0.08, 0]}>
-      {/* Marble apron around base */}
-      <mesh>
-        <boxGeometry args={[width + 0.15, 0.12, depth + 0.15]} />
-        <meshStandardMaterial 
-          color="#e8e8e0"
-          roughness={0.3}
-          metalness={0.05}
-        />
+    <group position={[0, -KAABA_HEIGHT / 2, 0]}>
+      {/* Sloped marble apron — sits flush at Kaaba base */}
+      <mesh receiveShadow>
+        <boxGeometry args={[width + 0.2, 0.15, depth + 0.2]} />
+        <meshStandardMaterial color="#e8e4d8" roughness={0.3} metalness={0.05} />
       </mesh>
-      {/* Gold trim on top */}
-      <mesh position={[0, 0.07, 0]}>
-        <boxGeometry args={[width + 0.17, 0.02, depth + 0.17]} />
+      {/* Gold trim */}
+      <mesh position={[0, 0.08, 0]}>
+        <boxGeometry args={[width + 0.22, 0.02, depth + 0.22]} />
         <meshStandardMaterial color="#d4af37" roughness={0.3} metalness={0.8} />
       </mesh>
     </group>
   );
 }
 
-// Meezab (golden rainwater spout)
-function Meezab() {
+// ─── Meezab ────────────────────────────────────────────────────────────
+function Meezab({ goldTex }: { goldTex: THREE.Texture }) {
   return (
     <group position={[0, KAABA_HEIGHT / 2 - 0.3, -KAABA_DEPTH / 2 - 0.15]} rotation={[-0.3, 0, 0]}>
-      {/* Spout base */}
       <mesh>
         <boxGeometry args={[0.25, 0.08, 0.4]} />
-        <meshStandardMaterial 
-          color="#d4af37"
-          roughness={0.2}
-          metalness={0.9}
-          emissive="#d4af37"
-          emissiveIntensity={0.15}
-        />
+        <meshStandardMaterial map={goldTex} color="#d4af37" roughness={0.2} metalness={0.9} emissive="#d4af37" emissiveIntensity={0.12} />
       </mesh>
-      {/* Spout channel */}
       <mesh position={[0, 0.02, 0.1]}>
         <boxGeometry args={[0.15, 0.04, 0.45]} />
         <meshStandardMaterial color="#ffd700" roughness={0.15} metalness={0.95} />
       </mesh>
-      {/* Decorative end */}
       <mesh position={[0, 0, 0.25]}>
         <cylinderGeometry args={[0.08, 0.12, 0.1, 8]} />
-        <meshStandardMaterial color="#d4af37" roughness={0.2} metalness={0.9} />
+        <meshStandardMaterial map={goldTex} color="#d4af37" roughness={0.2} metalness={0.9} />
       </mesh>
     </group>
   );
 }
 
-// Hijr Ismail (semi-circular wall)
+// ─── Hijr Ismail ───────────────────────────────────────────────────────
 function HijrIsmail() {
   const curve = useMemo(() => {
     const points: THREE.Vector3[] = [];
@@ -338,42 +380,25 @@ function HijrIsmail() {
 
   return (
     <group position={[0, -KAABA_HEIGHT / 2 + 0.3, 0]}>
-      {/* Semi-circular marble wall */}
       {curve.slice(0, -1).map((point, i) => {
         const nextPoint = curve[i + 1];
         const midX = (point.x + nextPoint.x) / 2;
         const midZ = (point.z + nextPoint.z) / 2;
         const angle = Math.atan2(nextPoint.x - point.x, nextPoint.z - point.z);
         const length = point.distanceTo(nextPoint);
-        
         return (
-          <mesh key={i} position={[midX, 0.15, midZ]} rotation={[0, angle, 0]}>
-            <boxGeometry args={[0.08, 0.35, length]} />
-            <meshStandardMaterial 
-              color="#f5f5f0"
-              roughness={0.35}
-              metalness={0.05}
-            />
-          </mesh>
+          <group key={i}>
+            <mesh position={[midX, 0.15, midZ]} rotation={[0, angle, 0]} castShadow>
+              <boxGeometry args={[0.08, 0.35, length]} />
+              <meshStandardMaterial color="#f5f5f0" roughness={0.35} metalness={0.05} />
+            </mesh>
+            <mesh position={[midX, 0.34, midZ]} rotation={[0, angle, 0]}>
+              <boxGeometry args={[0.1, 0.03, length]} />
+              <meshStandardMaterial color="#d4af37" roughness={0.25} metalness={0.85} />
+            </mesh>
+          </group>
         );
       })}
-      
-      {/* Gold trim on top of Hijr */}
-      {curve.slice(0, -1).map((point, i) => {
-        const nextPoint = curve[i + 1];
-        const midX = (point.x + nextPoint.x) / 2;
-        const midZ = (point.z + nextPoint.z) / 2;
-        const angle = Math.atan2(nextPoint.x - point.x, nextPoint.z - point.z);
-        const length = point.distanceTo(nextPoint);
-        
-        return (
-          <mesh key={`gold-${i}`} position={[midX, 0.34, midZ]} rotation={[0, angle, 0]}>
-            <boxGeometry args={[0.1, 0.03, length]} />
-            <meshStandardMaterial color="#d4af37" roughness={0.25} metalness={0.85} />
-          </mesh>
-        );
-      })}
-      
       {/* Marble floor inside Hijr */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, -KAABA_DEPTH / 2 - 0.5]}>
         <circleGeometry args={[1.5, 32, 0, Math.PI]} />
@@ -383,169 +408,153 @@ function HijrIsmail() {
   );
 }
 
-// Black Stone (Al-Hajar Al-Aswad) - Highly detailed
+// ─── Black Stone (Al-Hajar Al-Aswad) ──────────────────────────────────
 function BlackStone() {
   const stoneRef = useRef<THREE.Mesh>(null);
   const glowRef = useRef<THREE.Mesh>(null);
-  
+
   useFrame((state) => {
-    if (stoneRef.current && stoneRef.current.material) {
-      const material = stoneRef.current.material as THREE.MeshStandardMaterial;
-      material.emissiveIntensity = 0.25 + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
+    if (stoneRef.current?.material) {
+      const mat = stoneRef.current.material as THREE.MeshStandardMaterial;
+      mat.emissiveIntensity = 0.25 + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
     }
     if (glowRef.current) {
       glowRef.current.scale.setScalar(1 + Math.sin(state.clock.elapsedTime * 2) * 0.05);
     }
   });
 
-  // Position at the eastern corner of the Kaaba
-  const stonePosition: [number, number, number] = [KAABA_WIDTH / 2, 0.2, KAABA_DEPTH / 2];
+  // Eastern corner, ~1.5m above ground (scaled)
+  const stoneY = GROUND_Y + KAABA_HEIGHT * 0.12 + KAABA_HEIGHT / 2 * 0; // relative to structure center
+  const stonePosition: [number, number, number] = [KAABA_WIDTH / 2, GROUND_Y + 0.5, KAABA_DEPTH / 2];
 
   return (
     <group position={stonePosition}>
-      {/* Silver frame (Tawq) - octagonal shape */}
+      {/* Silver frame (Tawq) */}
       <mesh rotation={[0, Math.PI / 4, 0]}>
         <cylinderGeometry args={[0.22, 0.22, 0.08, 8]} />
-        <meshStandardMaterial 
-          color="#c0c0c0"
-          roughness={0.15}
-          metalness={0.95}
-        />
+        <meshStandardMaterial color="#c0c0c0" roughness={0.15} metalness={0.95} />
       </mesh>
-      
       {/* Inner silver ring */}
       <mesh>
         <torusGeometry args={[0.15, 0.025, 16, 32]} />
         <meshStandardMaterial color="#e8e8e8" roughness={0.1} metalness={0.95} />
       </mesh>
-      
-      {/* The Black Stone itself - fragmented appearance */}
+      {/* The Stone */}
       <mesh ref={stoneRef}>
         <sphereGeometry args={[0.12, 24, 24]} />
-        <meshStandardMaterial 
-          color="#1a0a0a"
-          roughness={0.5}
-          metalness={0.2}
-          emissive="#2a0020"
-          emissiveIntensity={0.25}
-        />
+        <meshStandardMaterial color="#1a0a0a" roughness={0.5} metalness={0.2} emissive="#2a0020" emissiveIntensity={0.25} />
       </mesh>
-      
-      {/* Stone fragments/cracks representation */}
-      {[0, 72, 144, 216, 288].map((angle, i) => (
-        <mesh key={i} rotation={[0, (angle * Math.PI) / 180, 0]} position={[0.08, 0, 0]}>
+      {/* Fragment details */}
+      {[0, 72, 144, 216, 288].map((a, i) => (
+        <mesh key={i} rotation={[0, (a * Math.PI) / 180, 0]} position={[0.08, 0, 0]}>
           <sphereGeometry args={[0.04, 12, 12]} />
           <meshStandardMaterial color="#150808" roughness={0.6} metalness={0.15} />
         </mesh>
       ))}
-      
-      {/* Divine glow effect */}
+      {/* Glow */}
       <mesh ref={glowRef}>
         <sphereGeometry args={[0.25, 32, 32]} />
-        <meshBasicMaterial 
-          color="#4a0040"
-          transparent
-          opacity={0.15}
-        />
+        <meshBasicMaterial color="#4a0040" transparent opacity={0.15} />
       </mesh>
-      
-      {/* Outer ethereal glow */}
       <mesh>
         <sphereGeometry args={[0.35, 32, 32]} />
-        <meshBasicMaterial 
-          color="#3a0030"
-          transparent
-          opacity={0.08}
-        />
+        <meshBasicMaterial color="#3a0030" transparent opacity={0.08} />
       </mesh>
     </group>
   );
 }
 
-// Enhanced Mataaf floor with realistic marble patterns
+// ─── Mataaf Floor (with procedural marble) ─────────────────────────────
 function MataafFloor() {
+  const marbleTex = useMarbleTexture('#f5f3ee', '#d5d0c0');
+  const innerMarbleTex = useMarbleTexture('#ece8dc', '#c8c0b0', 256);
+
   return (
     <group>
-      {/* Main marble floor - large area */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -KAABA_HEIGHT / 2 - 0.15, 0]} receiveShadow>
-        <circleGeometry args={[12, 128]} />
-        <meshStandardMaterial 
-          color="#f8f8f5"
-          roughness={0.25}
-          metalness={0.08}
+      {/* Main marble floor — flush at GROUND_Y */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, GROUND_Y - 0.01, 0]} receiveShadow>
+        <circleGeometry args={[14, 128]} />
+        <meshStandardMaterial
+          map={marbleTex}
+          color="#f5f3ee"
+          roughness={0.22}
+          metalness={0.06}
         />
       </mesh>
-      
-      {/* Concentric circles for Tawaf guidance */}
-      {[2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5].map((radius, i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[0, -KAABA_HEIGHT / 2 - 0.14, 0]}>
-          <ringGeometry args={[radius - 0.015, radius + 0.015, 128]} />
-          <meshStandardMaterial 
-            color={i % 2 === 0 ? "#e0dcd0" : "#d0ccc0"}
+
+      {/* Tawaf guidance rings */}
+      {[2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 10.5, 11.5, 12.5].map((radius, i) => (
+        <mesh key={i} rotation={[-Math.PI / 2, 0, 0]} position={[0, GROUND_Y, 0]}>
+          <ringGeometry args={[radius - 0.02, radius + 0.02, 128]} />
+          <meshStandardMaterial
+            color={i % 2 === 0 ? '#ddd8c8' : '#ccc7b8'}
             roughness={0.35}
             metalness={0.05}
           />
         </mesh>
       ))}
-      
-      {/* Maqam Ibrahim (Station of Ibrahim) */}
-      <group position={[0, -KAABA_HEIGHT / 2 - 0.05, 2.5]}>
-        {/* Glass and gold enclosure */}
-        <mesh>
+
+      {/* Darker border tiles — outer ring */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, GROUND_Y - 0.005, 0]}>
+        <ringGeometry args={[13, 14, 128]} />
+        <meshStandardMaterial color="#b8b0a0" roughness={0.4} metalness={0.03} />
+      </mesh>
+
+      {/* Maqam Ibrahim — sits on ground */}
+      <group position={[0, GROUND_Y, 2.5]}>
+        {/* Gold & glass enclosure */}
+        <mesh position={[0, 0.3, 0]}>
           <cylinderGeometry args={[0.35, 0.35, 0.6, 32]} />
-          <meshStandardMaterial 
-            color="#ffd700"
-            roughness={0.2}
-            metalness={0.85}
-            transparent
-            opacity={0.7}
-          />
+          <meshStandardMaterial color="#ffd700" roughness={0.2} metalness={0.85} transparent opacity={0.7} />
+        </mesh>
+        {/* Stone base */}
+        <mesh position={[0, 0.04, 0]}>
+          <cylinderGeometry args={[0.4, 0.45, 0.08, 32]} />
+          <meshStandardMaterial color="#d4c8a0" roughness={0.4} metalness={0.05} />
         </mesh>
         {/* Inner footprint stone */}
-        <mesh position={[0, 0.1, 0]}>
+        <mesh position={[0, 0.15, 0]}>
           <boxGeometry args={[0.2, 0.15, 0.25]} />
           <meshStandardMaterial color="#8b7355" roughness={0.6} metalness={0.1} />
         </mesh>
         {/* Dome top */}
-        <mesh position={[0, 0.4, 0]}>
+        <mesh position={[0, 0.65, 0]}>
           <sphereGeometry args={[0.35, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial color="#d4af37" roughness={0.2} metalness={0.85} transparent opacity={0.6} />
+          <meshStandardMaterial color="#d4af37" roughness={0.2} metalness={0.85} transparent opacity={0.55} />
         </mesh>
       </group>
-      
-      {/* Zamzam well area indication */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[3, -KAABA_HEIGHT / 2 - 0.13, 3]}>
+
+      {/* Zamzam well area */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[3, GROUND_Y + 0.005, 3]} receiveShadow>
         <circleGeometry args={[0.8, 32]} />
-        <meshStandardMaterial color="#e8e4d8" roughness={0.4} metalness={0.05} />
+        <meshStandardMaterial map={innerMarbleTex} color="#e8e4d8" roughness={0.4} metalness={0.05} />
+      </mesh>
+
+      {/* Extended courtyard beyond Mataaf */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, GROUND_Y - 0.02, 0]} receiveShadow>
+        <ringGeometry args={[14, 25, 128]} />
+        <meshStandardMaterial color="#e0dcd0" roughness={0.45} metalness={0.03} />
       </mesh>
     </group>
   );
 }
 
-// Realistic pilgrims with varied appearances
+// ─── Pilgrims ──────────────────────────────────────────────────────────
 function Pilgrims() {
   const pilgrimsRef = useRef<THREE.Group>(null);
-  
+
   const pilgrims = useMemo(() => {
-    const data: { pos: [number, number, number], scale: number, color: string }[] = [];
-    
-    // Multiple rings of pilgrims
+    const data: { pos: [number, number, number]; scale: number; color: string }[] = [];
     for (let ring = 0; ring < 5; ring++) {
       const radius = 3 + ring * 1.2;
       const count = 15 + ring * 8;
-      
       for (let i = 0; i < count; i++) {
         const angle = (i / count) * Math.PI * 2 + Math.random() * 0.15;
-        const radiusVariation = radius + (Math.random() - 0.5) * 0.4;
-        
+        const rv = radius + (Math.random() - 0.5) * 0.4;
         data.push({
-          pos: [
-            Math.cos(angle) * radiusVariation,
-            -KAABA_HEIGHT / 2 + 0.08,
-            Math.sin(angle) * radiusVariation
-          ],
+          pos: [Math.cos(angle) * rv, GROUND_Y, Math.sin(angle) * rv],
           scale: 0.85 + Math.random() * 0.3,
-          color: Math.random() > 0.15 ? '#ffffff' : '#f5f5dc' // Most in ihram white
+          color: Math.random() > 0.15 ? '#ffffff' : '#f5f5dc',
         });
       }
     }
@@ -554,22 +563,21 @@ function Pilgrims() {
 
   useFrame((state) => {
     if (pilgrimsRef.current) {
-      // Counter-clockwise rotation (direction of Tawaf)
       pilgrimsRef.current.rotation.y = -state.clock.elapsedTime * 0.03;
     }
   });
 
   return (
     <group ref={pilgrimsRef}>
-      {pilgrims.map((pilgrim, i) => (
-        <group key={i} position={pilgrim.pos} scale={pilgrim.scale}>
-          {/* Body */}
-          <mesh position={[0, 0.12, 0]}>
+      {pilgrims.map((p, i) => (
+        <group key={i} position={p.pos} scale={p.scale}>
+          {/* Body — bottom at y=0, so person stands on ground */}
+          <mesh position={[0, 0.17, 0]}>
             <capsuleGeometry args={[0.045, 0.15, 4, 8]} />
-            <meshStandardMaterial color={pilgrim.color} roughness={0.7} />
+            <meshStandardMaterial color={p.color} roughness={0.7} />
           </mesh>
           {/* Head */}
-          <mesh position={[0, 0.28, 0]}>
+          <mesh position={[0, 0.33, 0]}>
             <sphereGeometry args={[0.035, 16, 16]} />
             <meshStandardMaterial color="#d4a574" roughness={0.6} />
           </mesh>
@@ -579,78 +587,58 @@ function Pilgrims() {
   );
 }
 
-// Detailed Minarets of Masjid al-Haram
+// ─── Minarets ──────────────────────────────────────────────────────────
 function Minarets() {
-  const minaretPositions: [number, number, number][] = [
-    [-10, 0, -10],
-    [10, 0, -10],
-    [-10, 0, 10],
-    [10, 0, 10],
-    [-10, 0, 0],
-    [10, 0, 0],
-    [0, 0, -10],
+  const positions: [number, number, number][] = [
+    [-10, 0, -10], [10, 0, -10], [-10, 0, 10], [10, 0, 10],
+    [-10, 0, 0], [10, 0, 0], [0, 0, -10],
   ];
 
   return (
     <>
-      {minaretPositions.map((pos, i) => (
-        <group key={i} position={pos}>
-          {/* Base */}
+      {positions.map((pos, i) => (
+        <group key={i} position={[pos[0], GROUND_Y, pos[2]]}>
+          {/* Base — bottom at ground */}
           <mesh position={[0, 0.3, 0]}>
             <cylinderGeometry args={[0.5, 0.6, 0.6, 8]} />
             <meshStandardMaterial color="#f5f5f0" roughness={0.4} />
           </mesh>
-          
-          {/* Main tower - tapered */}
+          {/* Main tower */}
           <mesh position={[0, 3, 0]}>
             <cylinderGeometry args={[0.25, 0.45, 5, 16]} />
             <meshStandardMaterial color="#f8f8f5" roughness={0.35} />
           </mesh>
-          
           {/* First balcony */}
-          <mesh position={[0, 4.5, 0]}>
+          <mesh position={[0, 5.5, 0]}>
             <cylinderGeometry args={[0.55, 0.55, 0.25, 16]} />
             <meshStandardMaterial color="#d4af37" roughness={0.25} metalness={0.8} />
           </mesh>
-          
           {/* Upper tower */}
-          <mesh position={[0, 5.8, 0]}>
+          <mesh position={[0, 6.8, 0]}>
             <cylinderGeometry args={[0.2, 0.25, 2.2, 16]} />
             <meshStandardMaterial color="#f8f8f5" roughness={0.35} />
           </mesh>
-          
           {/* Second balcony */}
-          <mesh position={[0, 6.8, 0]}>
+          <mesh position={[0, 8, 0]}>
             <cylinderGeometry args={[0.4, 0.4, 0.2, 16]} />
             <meshStandardMaterial color="#d4af37" roughness={0.25} metalness={0.8} />
           </mesh>
-          
           {/* Spire */}
-          <mesh position={[0, 8, 0]}>
+          <mesh position={[0, 9.2, 0]}>
             <coneGeometry args={[0.18, 2, 16]} />
             <meshStandardMaterial color="#d4af37" roughness={0.2} metalness={0.85} />
           </mesh>
-          
-          {/* Crescent and star */}
-          <group position={[0, 9.2, 0]}>
+          {/* Crescent */}
+          <group position={[0, 10.4, 0]}>
             <mesh rotation={[0, 0, Math.PI / 2]}>
               <torusGeometry args={[0.12, 0.015, 8, 24, Math.PI * 1.6]} />
-              <meshStandardMaterial 
-                color="#ffd700" 
-                roughness={0.15} 
-                metalness={0.95}
-                emissive="#ffd700"
-                emissiveIntensity={0.3}
-              />
+              <meshStandardMaterial color="#ffd700" roughness={0.15} metalness={0.95} emissive="#ffd700" emissiveIntensity={0.3} />
             </mesh>
-            {/* Star */}
             <mesh position={[0.08, 0, 0]}>
               <octahedronGeometry args={[0.04]} />
               <meshStandardMaterial color="#ffd700" roughness={0.15} metalness={0.95} emissive="#ffd700" emissiveIntensity={0.3} />
             </mesh>
           </group>
-          
-          {/* Minaret lights */}
           <pointLight position={[0, 7, 0]} intensity={0.3} color="#ffd700" distance={5} />
         </group>
       ))}
@@ -658,26 +646,20 @@ function Minarets() {
   );
 }
 
-// Enhanced ambient particles with divine atmosphere
+// ─── Ambient Particles ─────────────────────────────────────────────────
 function AmbientParticles() {
   const particlesRef = useRef<THREE.Points>(null);
-  
+
   const { positions, colors } = useMemo(() => {
-    const count = 800;
+    const count = 600;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
-    
     for (let i = 0; i < count; i++) {
-      // Spiral distribution around the Kaaba
       const angle = (i / count) * Math.PI * 8;
       const radius = 2 + (i / count) * 12;
-      const height = Math.random() * 15;
-      
       positions[i * 3] = Math.cos(angle) * radius + (Math.random() - 0.5) * 2;
-      positions[i * 3 + 1] = height;
+      positions[i * 3 + 1] = GROUND_Y + 0.5 + Math.random() * 14;
       positions[i * 3 + 2] = Math.sin(angle) * radius + (Math.random() - 0.5) * 2;
-      
-      // Gold/white color variation
       const isGold = Math.random() > 0.5;
       colors[i * 3] = isGold ? 0.83 : 1;
       colors[i * 3 + 1] = isGold ? 0.69 : 0.98;
@@ -689,51 +671,38 @@ function AmbientParticles() {
   useFrame((state) => {
     if (particlesRef.current) {
       particlesRef.current.rotation.y = state.clock.elapsedTime * 0.015;
-      
-      // Gentle vertical movement
-      const posArray = particlesRef.current.geometry.attributes.position.array as Float32Array;
-      for (let i = 0; i < posArray.length / 3; i++) {
-        posArray[i * 3 + 1] += Math.sin(state.clock.elapsedTime + i) * 0.001;
-      }
-      particlesRef.current.geometry.attributes.position.needsUpdate = true;
     }
   });
 
   return (
     <points ref={particlesRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={800} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={800} array={colors} itemSize={3} />
+        <bufferAttribute attach="attributes-position" count={600} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={600} array={colors} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial 
-        size={0.04}
-        vertexColors
-        transparent
-        opacity={0.7}
-        sizeAttenuation
-      />
+      <pointsMaterial size={0.04} vertexColors transparent opacity={0.6} sizeAttenuation />
     </points>
   );
 }
 
-// Volumetric divine light rays
-function DivineLights() {
+// ─── Lighting ──────────────────────────────────────────────────────────
+function SceneLighting() {
   const lightRayRef = useRef<THREE.Mesh>(null);
-  
+
   useFrame((state) => {
     if (lightRayRef.current) {
-      lightRayRef.current.rotation.y = state.clock.elapsedTime * 0.1;
-      const material = lightRayRef.current.material as THREE.MeshBasicMaterial;
-      material.opacity = 0.08 + Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
+      lightRayRef.current.rotation.y = state.clock.elapsedTime * 0.08;
+      const mat = lightRayRef.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = 0.06 + Math.sin(state.clock.elapsedTime * 0.5) * 0.02;
     }
   });
 
   return (
     <group>
-      {/* Central divine spotlight */}
+      {/* Primary divine spotlight from above */}
       <spotLight
-        position={[0, 20, 0]}
-        angle={0.4}
+        position={[0, 25, 0]}
+        angle={0.35}
         penumbra={1}
         intensity={3}
         color="#fffef0"
@@ -741,114 +710,69 @@ function DivineLights() {
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      
+
       {/* Volumetric light cone */}
-      <mesh ref={lightRayRef} position={[0, 10, 0]}>
-        <coneGeometry args={[8, 20, 32, 1, true]} />
-        <meshBasicMaterial 
-          color="#ffffd0"
-          transparent
-          opacity={0.08}
-          side={THREE.DoubleSide}
-        />
+      <mesh ref={lightRayRef} position={[0, 12, 0]}>
+        <coneGeometry args={[8, 24, 32, 1, true]} />
+        <meshBasicMaterial color="#ffffd0" transparent opacity={0.06} side={THREE.DoubleSide} />
       </mesh>
-      
+
       {/* Warm accent lights */}
-      <pointLight position={[8, 6, 8]} intensity={0.6} color="#ffd700" distance={15} />
-      <pointLight position={[-8, 6, -8]} intensity={0.6} color="#ffd700" distance={15} />
-      <pointLight position={[8, 6, -8]} intensity={0.4} color="#fff5e0" distance={12} />
-      <pointLight position={[-8, 6, 8]} intensity={0.4} color="#fff5e0" distance={12} />
-      
-      {/* Soft moonlight */}
-      <directionalLight 
-        position={[15, 20, -10]} 
-        intensity={0.4} 
-        color="#e0e8ff"
-        castShadow
-      />
-      
-      {/* Ambient fill */}
-      <ambientLight intensity={0.25} color="#fff8f0" />
-      
-      {/* Hemisphere light for natural sky/ground color */}
+      <pointLight position={[8, 6, 8]} intensity={0.5} color="#ffd700" distance={15} />
+      <pointLight position={[-8, 6, -8]} intensity={0.5} color="#ffd700" distance={15} />
+      <pointLight position={[8, 6, -8]} intensity={0.35} color="#fff5e0" distance={12} />
+      <pointLight position={[-8, 6, 8]} intensity={0.35} color="#fff5e0" distance={12} />
+
+      {/* Directional moonlight */}
+      <directionalLight position={[15, 20, -10]} intensity={0.4} color="#e0e8ff" castShadow />
+
+      {/* Ambient + hemisphere */}
+      <ambientLight intensity={0.2} color="#fff8f0" />
       <hemisphereLight args={['#1a1a3a', '#0a0a0a', 0.3]} />
     </group>
   );
 }
 
-// Camera animation with cinematic movement
+// ─── Camera ────────────────────────────────────────────────────────────
 function CameraAnimation() {
   const { camera } = useThree();
-  
   useFrame((state) => {
     const t = state.clock.elapsedTime * 0.08;
     const radius = 14 + Math.sin(t * 0.5) * 3;
-    
     camera.position.x = Math.sin(t) * radius;
     camera.position.z = Math.cos(t) * radius;
-    camera.position.y = 6 + Math.sin(t * 0.3) * 3;
-    camera.lookAt(0, 1, 0);
+    camera.position.y = GROUND_Y + 6 + Math.sin(t * 0.3) * 3;
+    camera.lookAt(0, GROUND_Y + KAABA_HEIGHT * 0.4, 0);
   });
-  
   return null;
 }
 
-// Loading fallback
+// ─── Loading fallback ──────────────────────────────────────────────────
 function LoadingFallback() {
   const meshRef = useRef<THREE.Mesh>(null);
-  
   useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y = state.clock.elapsedTime;
-    }
+    if (meshRef.current) meshRef.current.rotation.y = state.clock.elapsedTime;
   });
-  
   return (
-    <mesh ref={meshRef}>
+    <mesh ref={meshRef} position={[0, GROUND_Y + 1.25, 0]}>
       <boxGeometry args={[2, 2.5, 2]} />
       <meshBasicMaterial color="#333333" wireframe />
     </mesh>
   );
 }
 
-// Main 3D Scene
+// ─── Main Scene ────────────────────────────────────────────────────────
 function Scene({ autoRotate }: { autoRotate: boolean }) {
   return (
     <>
-      {/* Deep night sky background */}
       <color attach="background" args={['#05050f']} />
-      
-      {/* Enhanced starfield */}
-      <Stars 
-        radius={150} 
-        depth={80} 
-        count={8000} 
-        factor={5} 
-        saturation={0.1} 
-        fade 
-        speed={0.5}
-      />
-      
-      {/* Subtle clouds/atmosphere */}
-      <Cloud
-        position={[0, 25, 0]}
-        opacity={0.1}
-        speed={0.1}
-        segments={20}
-      />
-      
-      {/* Divine sparkle effects */}
-      <Sparkles
-        count={200}
-        scale={20}
-        size={2}
-        speed={0.3}
-        color="#ffd700"
-        opacity={0.4}
-      />
-      
-      <DivineLights />
-      
+
+      <Stars radius={150} depth={80} count={8000} factor={5} saturation={0.1} fade speed={0.5} />
+
+      <Sparkles count={150} scale={20} size={2} speed={0.3} color="#ffd700" opacity={0.35} />
+
+      <SceneLighting />
+
       <Suspense fallback={<LoadingFallback />}>
         <KaabaStructure />
         <BlackStone />
@@ -857,20 +781,20 @@ function Scene({ autoRotate }: { autoRotate: boolean }) {
         <Minarets />
         <AmbientParticles />
       </Suspense>
-      
-      {/* Fog for depth */}
-      <fog attach="fog" args={['#0a0a15', 15, 50]} />
-      
+
+      <fog attach="fog" args={['#0a0a15', 18, 55]} />
+
       {autoRotate ? (
         <CameraAnimation />
       ) : (
-        <OrbitControls 
-          enableZoom={true}
+        <OrbitControls
+          enableZoom
           enablePan={false}
           minDistance={5}
           maxDistance={30}
           minPolarAngle={Math.PI / 8}
-          maxPolarAngle={Math.PI / 2.1}
+          maxPolarAngle={Math.PI / 2.05}
+          target={[0, GROUND_Y + KAABA_HEIGHT * 0.35, 0]}
           autoRotate
           autoRotateSpeed={0.3}
           enableDamping
@@ -881,6 +805,7 @@ function Scene({ autoRotate }: { autoRotate: boolean }) {
   );
 }
 
+// ─── Export ─────────────────────────────────────────────────────────────
 interface Kaaba3DProps {
   autoRotate?: boolean;
   className?: string;
@@ -892,8 +817,8 @@ export default function Kaaba3D({ autoRotate = false, className = '' }: Kaaba3DP
       <Canvas
         shadows
         camera={{ position: [12, 7, 12], fov: 45 }}
-        gl={{ 
-          antialias: true, 
+        gl={{
+          antialias: true,
           alpha: true,
           powerPreference: 'high-performance',
           stencil: false,
@@ -902,15 +827,13 @@ export default function Kaaba3D({ autoRotate = false, className = '' }: Kaaba3DP
       >
         <Scene autoRotate={autoRotate} />
       </Canvas>
-      
-      {/* Cinematic vignette overlay */}
-      <div className="absolute inset-0 pointer-events-none bg-radial-gradient" 
-        style={{
-          background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)'
-        }}
+
+      {/* Cinematic vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%)' }}
       />
-      
-      {/* Bottom gradient */}
+      {/* Bottom gradient blend */}
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-background/60 via-transparent to-transparent" />
     </div>
   );
