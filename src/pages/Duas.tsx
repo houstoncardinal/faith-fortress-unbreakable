@@ -174,7 +174,7 @@ const Duas = () => {
   return (
     <>
       <SEOHead
-        title="Islamic Duas & Supplications | Authentic Prayer Collection | Deen App"
+        title="Islamic Duas & Supplications | Authentic Prayer Collection | Deen. By Cardinal"
         description="Discover authentic Islamic duas and supplications for every life situation. Complete collection with Arabic text, transliteration, and English translation. Perfect for daily prayers, stress relief, travel, studies, and more."
         keywords="Islamic duas, Muslim supplications, Arabic prayers, Islamic prayer collection, daily duas, travel duas, study prayers, anxiety relief prayers, authentic supplications, Quran duas"
         ogImage="/src/assets/og-duas.jpg"

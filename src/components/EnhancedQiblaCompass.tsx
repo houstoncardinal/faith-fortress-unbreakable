@@ -7,209 +7,56 @@ import { Badge } from "@/components/ui/badge";
 import { calculateQiblaDirection, calculateDistanceToKaaba, getDirectionName } from "@/utils/qiblaCalculation";
 import { QiblaSettings, defaultQiblaSettings } from "@/types/qiblaTypes";
 import QiblaSettingsComponent from "./QiblaSettings";
-
-interface LocationData {
-  latitude: number;
-  longitude: number;
-  accuracy: number;
-  timestamp: number;
-}
+import { useCapacitorGeolocation } from "@/hooks/useCapacitorGeolocation";
+import { useCapacitorMotion } from "@/hooks/useCapacitorMotion";
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 
 const EnhancedQiblaCompass = () => {
-  const [location, setLocation] = useState<LocationData | null>(null);
-  const [deviceHeading, setDeviceHeading] = useState<number | null>(null);
+  const geo = useCapacitorGeolocation();
+  const motion = useCapacitorMotion();
+  
   const [smoothedHeading, setSmoothedHeading] = useState<number | null>(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isPointingToQibla, setIsPointingToQibla] = useState(false);
   const [lastVibration, setLastVibration] = useState(0);
-  
-  const watchIdRef = useRef<number | null>(null);
-  const orientationListenerRef = useRef<((event: DeviceOrientationEvent) => void) | null>(null);
-  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   const [settings, setSettings] = useState<QiblaSettings>(defaultQiblaSettings);
 
   // Smooth heading calculation
   const smoothHeading = useCallback((newHeading: number, previousHeading: number | null, factor: number): number => {
     if (previousHeading === null) return newHeading;
-    
-    // Handle angle wrapping (e.g., 359° to 1°)
     let diff = newHeading - previousHeading;
     if (diff > 180) diff -= 360;
     if (diff < -180) diff += 360;
-    
     const smoothed = previousHeading + diff * factor;
     return ((smoothed % 360) + 360) % 360;
   }, []);
 
-  // Handle device orientation
+  // Process motion data into heading
   useEffect(() => {
-    console.log('🧭 iOS Debug: Setting up device orientation...');
-    console.log('🧭 iOS Debug: DeviceOrientationEvent exists:', !!window.DeviceOrientationEvent);
-    console.log('🧭 iOS Debug: User agent:', navigator.userAgent);
-    
-    if (!window.DeviceOrientationEvent) {
-      console.log('❌ iOS Debug: DeviceOrientationEvent not supported');
-      setError('Device orientation not supported on this device');
-      return;
-    }
-
-    const handleOrientation = (event: DeviceOrientationEvent) => {
-      console.log('🧭 iOS Debug: Orientation event received:', {
-        alpha: event.alpha,
-        beta: event.beta,
-        gamma: event.gamma,
-        absolute: event.absolute
-      });
+    if (motion.alpha !== null) {
+      let heading = motion.alpha + settings.magneticDeclination + settings.calibrationOffset;
+      heading = ((heading % 360) + 360) % 360;
       
-      if (event.alpha !== null) {
-        let heading = event.alpha + settings.magneticDeclination + settings.calibrationOffset;
-        heading = ((heading % 360) + 360) % 360;
-        
-        console.log('🧭 iOS Debug: Calculated heading:', heading);
-        setDeviceHeading(heading);
-        
-        if (settings.compassSmoothing) {
-          setSmoothedHeading(prev => {
-            const smoothed = smoothHeading(heading, prev, 1 - settings.smoothingFactor);
-            console.log('🧭 iOS Debug: Smoothed heading:', smoothed);
-            return smoothed;
-          });
-        } else {
-          setSmoothedHeading(heading);
-        }
+      if (settings.compassSmoothing) {
+        setSmoothedHeading(prev => smoothHeading(heading, prev, 1 - settings.smoothingFactor));
       } else {
-        console.log('❌ iOS Debug: Alpha is null - no compass data');
+        setSmoothedHeading(heading);
       }
-    };
-
-    // Request permission for iOS
-    const requestPermission = async () => {
-      console.log('🧭 iOS Debug: Checking if permission request is needed...');
-      
-      if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-        console.log('🧭 iOS Debug: iOS 13+ detected, requesting permission...');
-        try {
-          const permission = await (DeviceOrientationEvent as any).requestPermission();
-          console.log('🧭 iOS Debug: Permission result:', permission);
-          
-          if (permission === 'granted') {
-            console.log('✅ iOS Debug: Permission granted, adding event listener');
-            window.addEventListener('deviceorientation', handleOrientation, true);
-            orientationListenerRef.current = handleOrientation;
-            setError(null);
-          } else {
-            console.log('❌ iOS Debug: Permission denied');
-            setError('Motion & Orientation access denied. Please enable in Settings > Safari > Motion & Orientation Access');
-          }
-        } catch (error) {
-          console.error('❌ iOS Debug: Error requesting permission:', error);
-          setError('Failed to request motion permission. Please try again.');
-        }
-      } else {
-        console.log('🧭 iOS Debug: No permission needed, adding event listener');
-        window.addEventListener('deviceorientation', handleOrientation, true);
-        orientationListenerRef.current = handleOrientation;
-        setError(null);
-      }
-    };
-
-    requestPermission();
-
-    return () => {
-      console.log('🧭 iOS Debug: Cleaning up event listener');
-      if (orientationListenerRef.current) {
-        window.removeEventListener('deviceorientation', orientationListenerRef.current, true);
-      }
-    };
-  }, [settings.magneticDeclination, settings.calibrationOffset, settings.compassSmoothing, settings.smoothingFactor, smoothHeading]);
-
-  // Handle geolocation
-  const updateLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by this browser');
-      setLoading(false);
-      return;
     }
+  }, [motion.alpha, settings.magneticDeclination, settings.calibrationOffset, settings.compassSmoothing, settings.smoothingFactor, smoothHeading]);
 
-    if (settings.manualLocation && settings.latitude && settings.longitude) {
-      setLocation({
-        latitude: settings.latitude,
-        longitude: settings.longitude,
-        accuracy: 0,
-        timestamp: Date.now()
-      });
-      setError(null);
-      setLoading(false);
-      return;
-    }
+  // Use manual location or Capacitor geolocation
+  const location = settings.manualLocation && settings.latitude && settings.longitude
+    ? { latitude: settings.latitude, longitude: settings.longitude, accuracy: 0 }
+    : geo.latitude && geo.longitude
+      ? { latitude: geo.latitude, longitude: geo.longitude, accuracy: geo.accuracy || 0 }
+      : null;
 
-    const options = {
-      enableHighAccuracy: settings.highAccuracy,
-      timeout: settings.timeout,
-      maximumAge: settings.maxAge,
-    };
+  const loading = !settings.manualLocation && geo.loading;
+  const error = motion.error || (!settings.manualLocation ? geo.error : null);
 
-    const handleSuccess = (position: GeolocationPosition) => {
-      setLocation({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        accuracy: position.coords.accuracy,
-        timestamp: Date.now()
-      });
-      setError(null);
-      setLoading(false);
-    };
-
-    const handleError = (error: GeolocationPositionError) => {
-      let errorMessage = 'Unable to retrieve your location';
-      
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          errorMessage = 'Location access denied. Please enable location permissions.';
-          break;
-        case error.POSITION_UNAVAILABLE:
-          errorMessage = 'Location information is unavailable.';
-          break;
-        case error.TIMEOUT:
-          errorMessage = 'Location request timed out.';
-          break;
-      }
-
-      setError(errorMessage);
-      setLoading(false);
-    };
-
-    if (settings.autoUpdate && !watchIdRef.current) {
-      watchIdRef.current = navigator.geolocation.watchPosition(handleSuccess, handleError, options);
-    } else {
-      navigator.geolocation.getCurrentPosition(handleSuccess, handleError, options);
-    }
-  }, [settings]);
-
-  useEffect(() => {
-    updateLocation();
-
-    // Set up auto-update interval
-    if (settings.autoUpdate && settings.updateInterval > 0) {
-      updateIntervalRef.current = setInterval(updateLocation, settings.updateInterval * 1000);
-    }
-
-    return () => {
-      if (watchIdRef.current) {
-        navigator.geolocation.clearWatch(watchIdRef.current);
-        watchIdRef.current = null;
-      }
-      if (updateIntervalRef.current) {
-        clearInterval(updateIntervalRef.current);
-        updateIntervalRef.current = null;
-      }
-    };
-  }, [updateLocation, settings.autoUpdate, settings.updateInterval]);
-
-  // Calculate Qibla direction and check if pointing to it
   const qiblaDirection = location ? calculateQiblaDirection(location.latitude, location.longitude) : null;
   const distanceToKaaba = location ? calculateDistanceToKaaba(location.latitude, location.longitude) : null;
   
@@ -230,11 +77,15 @@ const EnhancedQiblaCompass = () => {
     const isPointing = Math.abs(qiblaArrowRotation) <= 5;
     setIsPointingToQibla(isPointing);
 
-    // Vibration feedback
-    if (isPointing && settings.vibrationFeedback && navigator.vibrate) {
+    // Vibration feedback - use Capacitor Haptics on native, web vibrate as fallback
+    if (isPointing && settings.vibrationFeedback) {
       const now = Date.now();
-      if (now - lastVibration > 2000) { // Vibrate every 2 seconds max
-        navigator.vibrate(200);
+      if (now - lastVibration > 2000) {
+        if (Capacitor.isNativePlatform()) {
+          Haptics.impact({ style: ImpactStyle.Medium }).catch(() => {});
+        } else if (navigator.vibrate) {
+          navigator.vibrate(200);
+        }
         setLastVibration(now);
       }
     }
@@ -248,35 +99,17 @@ const EnhancedQiblaCompass = () => {
   }, [qiblaArrowRotation, settings.vibrationFeedback, settings.voiceAnnouncements, lastVibration]);
 
   const handleCalibrate = async () => {
-    console.log('🔧 iOS Debug: Starting calibration process...');
     setIsCalibrating(true);
     
-    // For iOS, we need to explicitly request permission again during calibration
-    if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-      console.log('🔧 iOS Debug: Requesting permission during calibration...');
-      try {
-        const permission = await (DeviceOrientationEvent as any).requestPermission();
-        console.log('🔧 iOS Debug: Calibration permission result:', permission);
-        
-        if (permission !== 'granted') {
-          setError('Motion permission required for calibration. Please enable in Settings > Safari > Motion & Orientation Access');
-          setIsCalibrating(false);
-          return;
-        }
-      } catch (error) {
-        console.error('🔧 iOS Debug: Calibration permission error:', error);
-        setError('Failed to get motion permission. Please try again.');
-        setIsCalibrating(false);
-        return;
-      }
+    // Request permission via Capacitor motion hook
+    if (!motion.permissionGranted) {
+      await motion.requestPermission();
     }
     
     // Reset smoothed heading
-    console.log('🔧 iOS Debug: Resetting smoothed heading to:', deviceHeading);
-    setSmoothedHeading(deviceHeading);
+    setSmoothedHeading(motion.alpha);
     
     setTimeout(() => {
-      console.log('🔧 iOS Debug: Calibration complete');
       setIsCalibrating(false);
     }, 2000);
   };
@@ -460,7 +293,7 @@ const EnhancedQiblaCompass = () => {
           </Button>
           
           <Button 
-            onClick={updateLocation} 
+            onClick={geo.refresh} 
             variant="outline" 
             size="sm"
             className="flex-1"
@@ -497,9 +330,9 @@ const EnhancedQiblaCompass = () => {
           <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-3 space-y-1">
             <div>Coordinates: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</div>
             <div>Accuracy: ±{Math.round(location.accuracy)}m</div>
-            <div>Last Update: {new Date(location.timestamp).toLocaleTimeString()}</div>
-            {deviceHeading !== null && (
-              <div>Raw Heading: {Math.round(deviceHeading)}°</div>
+            <div>Platform: {Capacitor.isNativePlatform() ? 'Native' : 'Web'}</div>
+            {motion.alpha !== null && (
+              <div>Raw Heading: {Math.round(motion.alpha)}°</div>
             )}
             {smoothedHeading !== null && (
               <div>Smoothed Heading: {Math.round(smoothedHeading)}°</div>

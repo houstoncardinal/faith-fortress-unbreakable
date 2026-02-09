@@ -28,7 +28,7 @@ const QiblaPage = () => {
   return (
     <>
       <SEOHead
-        title="Qibla Compass & Direction Settings | High-Accuracy Prayer Direction | Deen App"
+        title="Qibla Compass & Direction Settings | High-Accuracy Prayer Direction | Deen. By Cardinal"
         description="Find precise Qibla direction with our advanced compass featuring GPS accuracy, real-time updates, magnetic declination adjustment, and comprehensive settings. Perfect for accurate prayer direction anywhere in the world."
         keywords="Qibla compass, prayer direction, Kaaba direction, GPS compass, Islamic compass, magnetic declination, prayer direction finder, accurate Qibla, Muslim compass"
         canonical="https://deen-app.com/qibla"
