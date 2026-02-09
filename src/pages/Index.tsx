@@ -26,7 +26,7 @@ const Index = () => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Deen - Your Ultimate Islamic Companion",
+    "name": "Deen. By Cardinal",
     "description": "The ultimate Muslim app to strengthen your deen with prayer times, Quran, dhikr counter, Qibla direction, and Islamic calendar",
     "applicationCategory": "ReligiousApplication",
     "operatingSystem": "Web Browser",
@@ -37,16 +37,16 @@ const Index = () => {
     },
     "author": {
       "@type": "Organization",
-      "name": "Deen App"
+      "name": "Cardinal"
     }
   };
 
   return (
     <>
       <SEOHead
-        title="Deen - Your Ultimate Islamic Companion | Prayer Times, Quran & More"
-        description="Strengthen your faith with comprehensive Islamic features: accurate prayer times, Quran verses, dhikr counter, Qibla direction, Islamic calendar, and guided prayers. The ultimate Muslim companion app."
-        keywords="Islamic app, prayer times, Quran, dhikr counter, Muslim app, Islamic calendar, Qibla direction, duas, prayer guide, Islamic companion, Muslim prayers, salah times"
+        title="Deen. By Cardinal | Prayer Times, Quran & Islamic Companion"
+        description="Strengthen your faith with comprehensive Islamic features: accurate prayer times, Quran verses, dhikr counter, Qibla direction, Islamic calendar, and guided prayers. The ultimate Muslim companion app by Cardinal."
+        keywords="Deen app, prayer times, Quran, dhikr counter, Muslim app, Islamic calendar, Qibla direction, duas, prayer guide, Islamic companion, Cardinal"
         ogImage="/src/assets/og-main.jpg"
         canonical="https://deen-app.com"
         structuredData={structuredData}
@@ -75,8 +75,8 @@ const Index = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="font-bold text-2xl lg:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Deen</h1>
-                <p className="text-sm lg:text-base text-muted-foreground font-medium hidden sm:block">Your Sacred Islamic Companion</p>
+                <h1 className="font-bold text-2xl lg:text-3xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Deen.</h1>
+                <p className="text-sm lg:text-base text-muted-foreground font-medium hidden sm:block">By Cardinal</p>
               </div>
             </div>
             
@@ -235,7 +235,7 @@ const Index = () => {
           </div>
           <p className="text-base lg:text-lg text-muted-foreground mb-4 lg:mb-6 px-2">May Allah bless you all</p>
           <p className="text-sm lg:text-base text-muted-foreground px-2 max-w-4xl mx-auto">
-            Built with love and reverence for the Muslim Ummah • صُنِعَ بِحُبٍّ وَاحْتِرَامٍ لِلأُمَّةِ الإِسْلاَمِيَّة
+            Deen. By Cardinal • Built with love and reverence for the Muslim Ummah • صُنِعَ بِحُبٍّ وَاحْتِرَامٍ لِلأُمَّةِ الإِسْلاَمِيَّة
           </p>
         </div>
       </footer>
