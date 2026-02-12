@@ -1,9 +1,7 @@
-
 import { Calendar, Star } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 const IslamicCalendar = () => {
-  const today = new Date();
   const islamicDate = "15 Jumada al-Awwal 1446";
   
   const upcomingEvents = [
@@ -13,48 +11,38 @@ const IslamicCalendar = () => {
   ];
 
   return (
-    <Card className="border-accent/30 shadow-md">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Calendar className="w-5 h-5" />
-          Islamic Calendar
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="text-center p-4 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg">
-          <div className="text-sm text-muted-foreground mb-1">Today's Islamic Date</div>
-          <div className="font-semibold text-lg text-primary">{islamicDate}</div>
-          <div className="font-arabic text-xl mt-2 text-accent">
-            ١٥ جمادى الأولى ١٤٤٦
+    <Card className="card-elevated overflow-hidden">
+      <CardContent className="p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Calendar className="w-4 h-4 text-primary" />
           </div>
+          <h3 className="font-display text-lg font-semibold text-foreground">Islamic Calendar</h3>
         </div>
 
-        <div className="space-y-3">
-          <div className="font-medium text-sm text-primary mb-2">Upcoming Events</div>
+        <div className="text-center p-5 bg-primary/5 rounded-xl border border-primary/8">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Today's Islamic Date</p>
+          <p className="font-display text-lg font-semibold text-primary">{islamicDate}</p>
+          <div className="font-arabic text-xl mt-1 text-accent">١٥ جمادى الأولى ١٤٤٦</div>
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">Upcoming</p>
           {upcomingEvents.map((event, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+            <div key={index} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/40 transition-colors">
               <div className="flex items-center gap-3">
-                <Star className="w-4 h-4 text-accent" />
+                <Star className="w-3.5 h-3.5 text-accent" />
                 <div>
-                  <div className="font-medium text-sm">{event.name}</div>
-                  <div className="font-arabic text-xs text-muted-foreground">{event.arabic}</div>
+                  <p className="font-medium text-sm">{event.name}</p>
+                  <p className="font-arabic text-xs text-muted-foreground">{event.arabic}</p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-medium text-primary">{event.date}</div>
-                <div className="text-xs text-muted-foreground">in {event.days} days</div>
+                <p className="text-xs font-medium text-primary">{event.date}</p>
+                <p className="text-[10px] text-muted-foreground">{event.days}d away</p>
               </div>
             </div>
           ))}
-        </div>
-
-        <div className="text-center p-3 bg-accent/10 rounded-lg">
-          <div className="font-arabic text-lg text-primary mb-1">
-            أَللَّهُمَّ بَارِكْ لَنَا فِيمَا رَزَقْتَنَا
-          </div>
-          <div className="text-xs text-muted-foreground italic">
-            "O Allah, bless us in what You have provided for us"
-          </div>
         </div>
       </CardContent>
     </Card>

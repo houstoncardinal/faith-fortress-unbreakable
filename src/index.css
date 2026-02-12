@@ -3,88 +3,99 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Islamic App Design System - Enhanced with Divine Aesthetic */
-@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Deen. By Cardinal — Premium Islamic Design System */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 43 33% 98%;
-    --foreground: 159 20% 12%;
+    --background: 40 30% 97%;
+    --foreground: 150 15% 10%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 159 20% 12%;
+    --card: 40 20% 99%;
+    --card-foreground: 150 15% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 159 20% 12%;
+    --popover: 40 20% 99%;
+    --popover-foreground: 150 15% 10%;
 
-    --primary: 159 50% 30%;
-    --primary-foreground: 43 33% 98%;
+    --primary: 152 40% 28%;
+    --primary-foreground: 40 30% 97%;
 
-    --secondary: 43 45% 88%;
-    --secondary-foreground: 159 20% 12%;
+    --secondary: 40 35% 92%;
+    --secondary-foreground: 150 15% 10%;
 
-    --muted: 43 25% 94%;
-    --muted-foreground: 159 15% 40%;
+    --muted: 40 15% 95%;
+    --muted-foreground: 150 10% 45%;
 
-    --accent: 35 70% 60%;
-    --accent-foreground: 159 20% 12%;
+    --accent: 38 65% 52%;
+    --accent-foreground: 150 15% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 43 33% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 40 30% 97%;
 
-    --border: 43 25% 90%;
-    --input: 43 25% 90%;
-    --ring: 159 50% 30%;
+    --border: 40 20% 91%;
+    --input: 40 20% 91%;
+    --ring: 152 40% 28%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --sidebar-background: 43 33% 98%;
-    --sidebar-foreground: 159 20% 12%;
-    --sidebar-primary: 159 50% 30%;
-    --sidebar-primary-foreground: 43 33% 98%;
-    --sidebar-accent: 43 25% 94%;
-    --sidebar-accent-foreground: 159 20% 12%;
-    --sidebar-border: 43 25% 90%;
-    --sidebar-ring: 159 50% 30%;
+    /* Premium tokens */
+    --gold: 38 75% 55%;
+    --gold-muted: 38 40% 80%;
+    --emerald: 152 50% 35%;
+    --emerald-light: 152 35% 90%;
+
+    --sidebar-background: 40 30% 97%;
+    --sidebar-foreground: 150 15% 10%;
+    --sidebar-primary: 152 40% 28%;
+    --sidebar-primary-foreground: 40 30% 97%;
+    --sidebar-accent: 40 15% 95%;
+    --sidebar-accent-foreground: 150 15% 10%;
+    --sidebar-border: 40 20% 91%;
+    --sidebar-ring: 152 40% 28%;
   }
 
   .dark {
-    --background: 159 30% 6%;
-    --foreground: 43 33% 95%;
+    --background: 150 20% 5%;
+    --foreground: 40 25% 93%;
 
-    --card: 159 25% 8%;
-    --card-foreground: 43 33% 95%;
+    --card: 150 18% 7%;
+    --card-foreground: 40 25% 93%;
 
-    --popover: 159 25% 8%;
-    --popover-foreground: 43 33% 95%;
+    --popover: 150 18% 7%;
+    --popover-foreground: 40 25% 93%;
 
-    --primary: 159 45% 50%;
-    --primary-foreground: 159 30% 6%;
+    --primary: 152 40% 45%;
+    --primary-foreground: 150 20% 5%;
 
-    --secondary: 159 15% 15%;
-    --secondary-foreground: 43 33% 95%;
+    --secondary: 150 12% 13%;
+    --secondary-foreground: 40 25% 93%;
 
-    --muted: 159 15% 12%;
-    --muted-foreground: 43 25% 70%;
+    --muted: 150 12% 11%;
+    --muted-foreground: 40 20% 65%;
 
-    --accent: 35 65% 60%;
-    --accent-foreground: 43 33% 95%;
+    --accent: 38 60% 55%;
+    --accent-foreground: 40 25% 93%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 43 33% 95%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 40 25% 93%;
 
-    --border: 159 15% 15%;
-    --input: 159 15% 15%;
-    --ring: 159 45% 50%;
+    --border: 150 12% 14%;
+    --input: 150 12% 14%;
+    --ring: 152 40% 45%;
 
-    --sidebar-background: 159 30% 6%;
-    --sidebar-foreground: 43 33% 95%;
-    --sidebar-primary: 159 45% 50%;
-    --sidebar-primary-foreground: 159 30% 6%;
-    --sidebar-accent: 159 15% 12%;
-    --sidebar-accent-foreground: 43 33% 95%;
-    --sidebar-border: 159 15% 15%;
-    --sidebar-ring: 159 45% 50%;
+    --gold: 38 70% 58%;
+    --gold-muted: 38 25% 25%;
+    --emerald: 152 45% 42%;
+    --emerald-light: 152 25% 15%;
+
+    --sidebar-background: 150 20% 5%;
+    --sidebar-foreground: 40 25% 93%;
+    --sidebar-primary: 152 40% 45%;
+    --sidebar-primary-foreground: 150 20% 5%;
+    --sidebar-accent: 150 12% 11%;
+    --sidebar-accent-foreground: 40 25% 93%;
+    --sidebar-border: 150 12% 14%;
+    --sidebar-ring: 152 40% 45%;
   }
 }
 
@@ -94,8 +105,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-inter;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   .font-arabic {
@@ -103,96 +117,111 @@
     font-feature-settings: 'liga', 'dlig', 'calt';
   }
 
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+
   .font-inter {
     font-family: 'Inter', sans-serif;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
+  /* Premium gradients */
   .gradient-islamic {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 50%, hsl(var(--primary)) 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--emerald)) 40%, hsl(var(--accent)) 100%);
   }
 
-  .gradient-prayer {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+  .gradient-gold {
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--gold)) 50%, hsl(var(--accent)) 100%);
   }
 
-  .gradient-sunset {
-    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ffecd2 100%);
+  .gradient-subtle {
+    background: linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--emerald-light)) 100%);
   }
 
-  .gradient-divine {
-    background: linear-gradient(135deg, hsl(var(--primary)/0.1) 0%, hsl(var(--accent)/0.1) 50%, hsl(var(--primary)/0.1) 100%);
+  .gradient-card {
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--emerald-light)/0.5) 100%);
   }
 }
 
 @layer utilities {
   .text-shadow-sm {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   }
 
   .text-shadow {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
   }
 
   .text-shadow-lg {
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
   }
 
   .bg-glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .bg-glass-dark {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  /* Safe area utilities for mobile devices */
+  /* Premium card styles */
+  .card-premium {
+    @apply rounded-2xl border border-border/50 bg-card shadow-sm;
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)/0.3) 100%);
+  }
+
+  .card-elevated {
+    @apply rounded-2xl border-0 shadow-xl;
+    background: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--emerald-light)/0.5) 100%);
+    box-shadow: 0 8px 32px -8px hsl(var(--primary) / 0.12), 0 2px 8px -2px hsl(var(--primary) / 0.06);
+  }
+
+  /* Safe area utilities */
   .safe-area-pb {
     padding-bottom: env(safe-area-inset-bottom);
   }
-
   .safe-area-pt {
     padding-top: env(safe-area-inset-top);
   }
-
   .safe-area-pl {
     padding-left: env(safe-area-inset-left);
   }
-
   .safe-area-pr {
     padding-right: env(safe-area-inset-right);
   }
 }
 
-/* Custom scrollbar for blessed experience */
+/* Premium scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--accent)));
-  border-radius: 4px;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, hsl(var(--accent)), hsl(var(--primary)));
+  background: hsl(var(--muted-foreground) / 0.35);
 }
 
-/* Enhanced animations for spiritual feel */
+/* Premium animations */
 @keyframes blessed-glow {
   0%, 100% { 
-    box-shadow: 0 0 5px hsl(var(--primary)/0.3), 0 0 10px hsl(var(--primary)/0.2); 
+    box-shadow: 0 0 8px hsl(var(--gold)/0.2), 0 0 24px hsl(var(--gold)/0.1); 
   }
   50% { 
-    box-shadow: 0 0 10px hsl(var(--primary)/0.5), 0 0 20px hsl(var(--primary)/0.3); 
+    box-shadow: 0 0 16px hsl(var(--gold)/0.35), 0 0 48px hsl(var(--gold)/0.15); 
   }
 }
 
@@ -200,17 +229,22 @@
   animation: blessed-glow 3s ease-in-out infinite;
 }
 
-@keyframes divine-pulse {
-  0%, 100% { 
-    opacity: 0.8;
-    transform: scale(1);
-  }
-  50% { 
-    opacity: 1;
-    transform: scale(1.02);
-  }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-.animate-divine-pulse {
-  animation: divine-pulse 4s ease-in-out infinite;
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, hsl(var(--gold)/0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
