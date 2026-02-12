@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Clock, ChevronRight, X, Star, Sparkles } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,123 +9,73 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { islamicLessons, categories, getLessonsByCategory, type IslamicLesson } from '@/data/islamicLessons';
 
 const difficultyColors = {
-  beginner: 'bg-green-500/10 text-green-600 border-green-500/20',
-  intermediate: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-  advanced: 'bg-red-500/10 text-red-600 border-red-500/20'
+  beginner: 'bg-emerald/10 text-emerald border-emerald/20',
+  intermediate: 'bg-accent/10 text-accent border-accent/20',
+  advanced: 'bg-destructive/10 text-destructive border-destructive/20'
 };
 
-interface LessonCardProps {
-  lesson: IslamicLesson;
-  onClick: () => void;
-}
-
-function LessonCard({ lesson, onClick }: LessonCardProps) {
+function LessonCard({ lesson, onClick }: { lesson: IslamicLesson; onClick: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
     >
-      <Card 
-        className="cursor-pointer hover:shadow-lg transition-all border-primary/10 hover:border-primary/30 bg-gradient-to-br from-card to-primary/5"
-        onClick={onClick}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
-              <div className="font-arabic text-lg text-primary mb-1">{lesson.arabicTitle}</div>
-              <h4 className="font-semibold text-foreground mb-1">{lesson.title}</h4>
-              <p className="text-sm text-muted-foreground line-clamp-2">{lesson.description}</p>
-              
-              <div className="flex items-center gap-2 mt-3">
-                <Badge variant="outline" className={difficultyColors[lesson.difficulty]}>
-                  {lesson.difficulty}
-                </Badge>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Clock className="w-3 h-3" />
-                  {lesson.duration} min
-                </span>
-              </div>
+      <button className="w-full text-left p-4 rounded-xl hover:bg-muted/40 transition-all border border-transparent hover:border-border/50" onClick={onClick}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="font-arabic text-lg text-primary mb-0.5">{lesson.arabicTitle}</div>
+            <h4 className="font-semibold text-sm text-foreground">{lesson.title}</h4>
+            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{lesson.description}</p>
+            <div className="flex items-center gap-2 mt-2.5">
+              <Badge variant="outline" className={`text-[10px] ${difficultyColors[lesson.difficulty]}`}>{lesson.difficulty}</Badge>
+              <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Clock className="w-3 h-3" />{lesson.duration}m
+              </span>
             </div>
-            
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
           </div>
-        </CardContent>
-      </Card>
+          <ChevronRight className="w-4 h-4 text-muted-foreground/40 mt-2 flex-shrink-0" />
+        </div>
+      </button>
     </motion.div>
   );
 }
 
-interface LessonDetailProps {
-  lesson: IslamicLesson;
-  onClose: () => void;
-}
-
-function LessonDetail({ lesson, onClose }: LessonDetailProps) {
+function LessonDetail({ lesson, onClose }: { lesson: IslamicLesson; onClose: () => void }) {
   return (
-    <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden">
+    <DialogContent className="max-w-2xl max-h-[90vh] p-0 overflow-hidden rounded-2xl">
       <DialogHeader className="p-6 pb-0">
         <div className="flex items-start justify-between">
           <div>
-            <div className="font-arabic text-2xl text-primary mb-2">{lesson.arabicTitle}</div>
-            <DialogTitle className="text-xl">{lesson.title}</DialogTitle>
+            <div className="font-arabic text-2xl text-primary mb-1">{lesson.arabicTitle}</div>
+            <DialogTitle className="font-display text-xl">{lesson.title}</DialogTitle>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="w-4 h-4" />
-          </Button>
+          <Button variant="ghost" size="icon" onClick={onClose} className="rounded-xl"><X className="w-4 h-4" /></Button>
         </div>
-        
         <div className="flex items-center gap-2 mt-3">
-          <Badge variant="outline" className={difficultyColors[lesson.difficulty]}>
-            {lesson.difficulty}
-          </Badge>
-          <span className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Clock className="w-4 h-4" />
-            {lesson.duration} minutes
-          </span>
+          <Badge variant="outline" className={difficultyColors[lesson.difficulty]}>{lesson.difficulty}</Badge>
+          <span className="flex items-center gap-1 text-sm text-muted-foreground"><Clock className="w-4 h-4" />{lesson.duration} min</span>
         </div>
       </DialogHeader>
-      
       <ScrollArea className="h-[60vh] px-6 pb-6">
-        <div className="space-y-6">
-          {/* Featured Quote */}
+        <div className="space-y-6 pt-4">
           {lesson.arabicQuote && (
-            <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 p-5 rounded-xl border border-primary/20">
-              <div className="font-arabic text-xl text-primary text-center mb-3 leading-relaxed">
-                {lesson.arabicQuote}
-              </div>
-              <p className="text-center text-muted-foreground italic">
-                "{lesson.quoteTranslation}"
-              </p>
-              {lesson.quoteSource && (
-                <p className="text-center text-xs text-muted-foreground mt-2">
-                  — {lesson.quoteSource}
-                </p>
-              )}
+            <div className="bg-primary/3 p-5 rounded-xl border border-primary/8">
+              <div className="font-arabic text-xl text-primary text-center leading-[2] mb-3">{lesson.arabicQuote}</div>
+              <p className="text-center text-sm text-muted-foreground italic">"{lesson.quoteTranslation}"</p>
+              {lesson.quoteSource && <p className="text-center text-xs text-muted-foreground/60 mt-2">— {lesson.quoteSource}</p>}
             </div>
           )}
-          
-          {/* Content */}
           <div className="space-y-4">
-            {lesson.content.map((paragraph, index) => (
-              <p key={index} className="text-foreground leading-relaxed">
-                {paragraph}
-              </p>
-            ))}
+            {lesson.content.map((p, i) => <p key={i} className="text-sm text-foreground/80 leading-relaxed">{p}</p>)}
           </div>
-          
-          {/* Key Points */}
-          <div className="bg-muted/50 p-5 rounded-xl">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
-              <Star className="w-4 h-4 text-accent" />
-              Key Points
-            </h4>
+          <div className="bg-muted/40 p-5 rounded-xl">
+            <h4 className="font-semibold text-sm mb-3 flex items-center gap-2"><Star className="w-4 h-4 text-accent" />Key Points</h4>
             <ul className="space-y-2">
-              {lesson.keyPoints.map((point, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm">
-                  <Sparkles className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>{point}</span>
+              {lesson.keyPoints.map((point, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <Sparkles className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" /><span>{point}</span>
                 </li>
               ))}
             </ul>
@@ -139,73 +89,49 @@ function LessonDetail({ lesson, onClose }: LessonDetailProps) {
 export default function IslamicLessons() {
   const [selectedCategory, setSelectedCategory] = useState<string>('pillars');
   const [selectedLesson, setSelectedLesson] = useState<IslamicLesson | null>(null);
-  
   const filteredLessons = getLessonsByCategory(selectedCategory as IslamicLesson['category']);
-  
+
   return (
-    <Card className="border-primary/20 shadow-xl bg-gradient-to-br from-card to-primary/5">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-primary-foreground" />
+    <Card className="card-elevated overflow-hidden">
+      <CardContent className="p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <span className="text-xl">Islamic Knowledge</span>
-            <p className="text-sm text-muted-foreground font-normal mt-0.5">
-              Explore the foundations of Islam
-            </p>
+            <h3 className="font-display text-lg font-semibold text-foreground">Islamic Knowledge</h3>
+            <p className="text-xs text-muted-foreground">Explore the foundations of Islam</p>
           </div>
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Category Tabs */}
+        </div>
+
         <ScrollArea className="w-full pb-2">
           <div className="flex gap-2">
-            {categories.map((category) => (
-              <Button
-                key={category.id}
-                variant={selectedCategory === category.id ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedCategory(category.id)}
-                className="flex-shrink-0"
-              >
-                <span className="mr-1.5">{category.icon}</span>
-                {category.name}
+            {categories.map((cat) => (
+              <Button key={cat.id} variant={selectedCategory === cat.id ? 'default' : 'outline'} size="sm" onClick={() => setSelectedCategory(cat.id)}
+                className={`flex-shrink-0 rounded-xl ${selectedCategory === cat.id ? 'gradient-islamic border-0 text-white' : ''}`}>
+                <span className="mr-1.5">{cat.icon}</span>{cat.name}
               </Button>
             ))}
           </div>
         </ScrollArea>
-        
-        {/* Lessons List */}
-        <div className="grid gap-3">
+
+        <div className="space-y-1">
           <AnimatePresence mode="popLayout">
             {filteredLessons.map((lesson) => (
-              <LessonCard
-                key={lesson.id}
-                lesson={lesson}
-                onClick={() => setSelectedLesson(lesson)}
-              />
+              <LessonCard key={lesson.id} lesson={lesson} onClick={() => setSelectedLesson(lesson)} />
             ))}
           </AnimatePresence>
-          
           {filteredLessons.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
-              <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>More lessons coming soon in this category</p>
+              <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-20" />
+              <p className="text-sm">More lessons coming soon</p>
             </div>
           )}
         </div>
       </CardContent>
-      
-      {/* Lesson Detail Dialog */}
+
       <Dialog open={!!selectedLesson} onOpenChange={() => setSelectedLesson(null)}>
-        {selectedLesson && (
-          <LessonDetail 
-            lesson={selectedLesson} 
-            onClose={() => setSelectedLesson(null)} 
-          />
-        )}
+        {selectedLesson && <LessonDetail lesson={selectedLesson} onClose={() => setSelectedLesson(null)} />}
       </Dialog>
     </Card>
   );
