@@ -22,7 +22,6 @@ export default {
 			fontFamily: {
 				'arabic': ['Amiri', 'serif'],
 				'inter': ['Inter', 'sans-serif'],
-				'display': ['Playfair Display', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -68,13 +67,11 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				gold: {
-					DEFAULT: 'hsl(var(--gold))',
-					muted: 'hsl(var(--gold-muted))'
-				},
-				emerald: {
-					DEFAULT: 'hsl(var(--emerald))',
-					light: 'hsl(var(--emerald-light))'
+				islamic: {
+					green: '#2D5A27',
+					gold: '#D4AF37',
+					cream: '#FAF7F0',
+					sage: '#9CAF88'
 				}
 			},
 			borderRadius: {
@@ -95,12 +92,12 @@ export default {
 					'0%': { opacity: '0', transform: 'translateY(12px)' },
 					'100%': { opacity: '1', transform: 'translateY(0)' }
 				},
-				'fade-in-up': {
-					'0%': { opacity: '0', transform: 'translateY(24px)' },
-					'100%': { opacity: '1', transform: 'translateY(0)' }
+				'pulse-gentle': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' }
 				},
 				'scale-in': {
-					'0%': { opacity: '0', transform: 'scale(0.95)' },
+					'0%': { opacity: '0', transform: 'scale(0.92)' },
 					'100%': { opacity: '1', transform: 'scale(1)' }
 				}
 			},
@@ -108,7 +105,7 @@ export default {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'fade-in': 'fade-in 0.6s ease-out forwards',
-				'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
+				'pulse-gentle': 'pulse-gentle 2s ease-in-out infinite',
 				'scale-in': 'scale-in 0.5s ease-out forwards'
 			}
 		}

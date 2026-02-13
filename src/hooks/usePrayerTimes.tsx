@@ -1,14 +1,20 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { formatInTimeZone } from 'date-fns-tz';
+import {
+  CalculationMethod,
+  CalculationParameters,
+  Coordinates,
+  HighLatitudeRule,
+  Madhab,
+  PrayerTimes as AdhanPrayerTimes,
+} from 'adhan';
 
 export interface PrayerTime {
   name: string;
   time: string;
   timeObject: Date;
-  minutes: number;
   arabic: string;
   passed: boolean;
 }
@@ -30,22 +36,99 @@ interface LocationState {
   accuracy: number;
 }
 
+/**
+ * Auto-detect the most appropriate Islamic calculation method based on coordinates.
+ * Maps geographic regions to their conventional calculation authorities.
+ *
+ * Methods and their Fajr / Isha angles:
+ *   NorthAmerica (ISNA)   – 15° / 15°
+ *   MuslimWorldLeague     – 18° / 17°
+ *   Egyptian               – 19.5° / 17.5°
+ *   Karachi                – 18° / 18°
+ *   UmmAlQura              – 18.5° / 90 min after Maghrib
+ *   Dubai                  – 18.2° / 18.2°
+ *   Qatar                  – 18° / 90 min
+ *   Kuwait                 – 18° / 17.5°
+ *   Singapore              – 20° / 18°
+ *   Turkey                 – 18° / 17°
+ *   Tehran                 – 17.7° / 14° (+ 4.5° Maghrib)
+ */
+const getCalculationMethod = (lat: number, lng: number): CalculationParameters => {
+  // --- North America ---
+  if (lat >= 15 && lat <= 75 && lng >= -170 && lng <= -50) {
+    return CalculationMethod.NorthAmerica();
+  }
+
+  // --- Turkey & Balkans ---
+  if (lat >= 36 && lat <= 42 && lng >= 26 && lng <= 45) {
+    return CalculationMethod.Turkey();
+  }
+
+  // --- Iran ---
+  if (lat >= 25 && lat <= 40 && lng >= 44 && lng <= 63) {
+    return CalculationMethod.Tehran();
+  }
+
+  // --- Arabian Peninsula & Gulf (check specific countries before Saudi fallback) ---
+  if (lat >= 15 && lat <= 33 && lng >= 34 && lng <= 60) {
+    // Qatar
+    if (lng >= 50.5 && lng <= 52 && lat >= 24.5 && lat <= 26.5) {
+      return CalculationMethod.Qatar();
+    }
+    // Kuwait
+    if (lng >= 46.5 && lng <= 49 && lat >= 28 && lat <= 31) {
+      return CalculationMethod.Kuwait();
+    }
+    // UAE
+    if (lng >= 51 && lng <= 56.5 && lat >= 22 && lat <= 26.5) {
+      return CalculationMethod.Dubai();
+    }
+    // Saudi Arabia & remaining peninsula
+    return CalculationMethod.UmmAlQura();
+  }
+
+  // --- Egypt & North Africa ---
+  if (lat >= 18 && lat <= 37 && lng >= -17 && lng <= 34) {
+    return CalculationMethod.Egyptian();
+  }
+
+  // --- South Asia (Pakistan, India, Bangladesh, Afghanistan) ---
+  if (lat >= 5 && lat <= 37 && lng >= 60 && lng <= 93) {
+    return CalculationMethod.Karachi();
+  }
+
+  // --- Southeast Asia (Singapore, Malaysia, Indonesia, Brunei) ---
+  if (lat >= -11 && lat <= 8 && lng >= 95 && lng <= 141) {
+    return CalculationMethod.Singapore();
+  }
+
+  // --- Default: Muslim World League (most widely accepted globally) ---
+  return CalculationMethod.MuslimWorldLeague();
+};
+
+const PRAYER_ARABIC: Record<string, string> = {
+  Fajr: 'الفجر',
+  Dhuhr: 'الظهر',
+  Asr: 'العصر',
+  Maghrib: 'المغرب',
+  Isha: 'العشاء',
+};
+
+const PRAYER_ORDER: { key: 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha'; name: string }[] = [
+  { key: 'fajr', name: 'Fajr' },
+  { key: 'dhuhr', name: 'Dhuhr' },
+  { key: 'asr', name: 'Asr' },
+  { key: 'maghrib', name: 'Maghrib' },
+  { key: 'isha', name: 'Isha' },
+];
+
 export const usePrayerTimes = (): PrayerTimesHook => {
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [location, setLocation] = useState<LocationState | null>(null);
-  const [lastAzaanPrayer, setLastAzaanPrayer] = useState<string | null>(null);
+  const lastAzaanPrayerRef = useRef<string | null>(null);
 
-  // Arabic names for prayers  
-  const prayerArabicNames = {
-    'Fajr': "الفجر",
-    'Dhuhr': "الظهر", 
-    'Asr': "العصر",
-    'Maghrib': "المغرب",
-    'Isha': "العشاء"
-  };
-
-  // Get user's location and timezone
+  // ─── Get user location & timezone ─────────────────────────────────────────
   useEffect(() => {
     const getLocationAndTimezone = async () => {
       if (!navigator.geolocation) {
@@ -55,292 +138,223 @@ export const usePrayerTimes = (): PrayerTimesHook => {
 
       try {
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(
-            resolve,
-            reject,
-            {
-              enableHighAccuracy: true,
-              timeout: 15000,
-              maximumAge: 300000 // 5 minutes
-            }
-          );
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 300000, // 5 minutes
+          });
         });
 
         const { latitude, longitude, accuracy } = position.coords;
-        
-        // Get timezone from browser
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        
-        console.log('📍 Prayer Times: Location acquired', {
+
+        console.log('Prayer Times: Location acquired', {
           lat: latitude,
           lng: longitude,
           timezone,
-          accuracy
+          accuracy,
         });
 
-        setLocation({
-          lat: latitude,
-          lng: longitude,
-          timezone,
-          accuracy
-        });
-
+        setLocation({ lat: latitude, lng: longitude, timezone, accuracy });
       } catch (error) {
         console.error('Failed to get location:', error);
-        // Fallback to approximate location based on timezone
         const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        
-        // Default coordinates for common timezones (you can expand this)
+
         const timezoneDefaults: Record<string, { lat: number; lng: number }> = {
-          'America/New_York': { lat: 40.7128, lng: -74.0060 },
+          'America/New_York': { lat: 40.7128, lng: -74.006 },
+          'America/Chicago': { lat: 41.8781, lng: -87.6298 },
+          'America/Denver': { lat: 39.7392, lng: -104.9903 },
+          'America/Los_Angeles': { lat: 34.0522, lng: -118.2437 },
+          'America/Toronto': { lat: 43.6532, lng: -79.3832 },
           'Europe/London': { lat: 51.5074, lng: -0.1278 },
+          'Europe/Paris': { lat: 48.8566, lng: 2.3522 },
+          'Europe/Istanbul': { lat: 41.0082, lng: 28.9784 },
           'Asia/Dubai': { lat: 25.2048, lng: 55.2708 },
           'Asia/Riyadh': { lat: 24.7136, lng: 46.6753 },
           'Asia/Karachi': { lat: 24.8607, lng: 67.0011 },
-          'Asia/Jakarta': { lat: -6.2088, lng: 106.8456 }
+          'Asia/Kolkata': { lat: 28.6139, lng: 77.209 },
+          'Asia/Dhaka': { lat: 23.8103, lng: 90.4125 },
+          'Asia/Jakarta': { lat: -6.2088, lng: 106.8456 },
+          'Asia/Kuala_Lumpur': { lat: 3.139, lng: 101.6869 },
+          'Africa/Cairo': { lat: 30.0444, lng: 31.2357 },
         };
 
-        const defaultCoords = timezoneDefaults[timezone] || { lat: 21.4225, lng: 39.8262 }; // Default to Mecca
-        
-        setLocation({
-          lat: defaultCoords.lat,
-          lng: defaultCoords.lng,
-          timezone,
-          accuracy: 0
-        });
+        const defaultCoords = timezoneDefaults[timezone] || { lat: 21.4225, lng: 39.8262 }; // Mecca fallback
+        setLocation({ lat: defaultCoords.lat, lng: defaultCoords.lng, timezone, accuracy: 0 });
       }
     };
 
     getLocationAndTimezone();
   }, []);
 
-  // Update current time every second
+  // ─── Tick every second ────────────────────────────────────────────────────
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // High-precision astronomical prayer time calculations
-  const calculatePrayerTimes = useCallback((): PrayerTime[] => {
-    if (!location) return [];
+  // ─── Date key in user's timezone (recalculate only when day changes) ──────
+  const currentDateKey = useMemo(() => {
+    if (!location) return '';
+    return formatInTimeZone(currentTime, location.timezone, 'yyyy-MM-dd');
+  }, [currentTime, location]);
+
+  // ─── Core adhan calculation – only recalculates when date or location changes
+  const adhanTimes = useMemo(() => {
+    if (!location || !currentDateKey) return null;
 
     try {
-      const { lat, lng, timezone } = location;
-      const date = new Date();
-      
-      // Astronomical calculations for prayer times
-      const dayOfYear = getDayOfYear(date);
-      const timeEqn = getEquationOfTime(dayOfYear);
-      const declinationAngle = getSolarDeclination(dayOfYear);
-      
-      // Standard prayer angle calculations (degrees)
-      const angles = {
-        fajr: -18,    // Civil twilight
-        sunrise: -0.833, // Geometric horizon + refraction
-        dhuhr: 0,     // Solar noon
-        asr: 0,       // Shadow length ratio
-        maghrib: -0.833, // Same as sunrise
-        isha: -17     // Astronomical twilight
-      };
-      
-      // Calculate prayer times
-      const prayerCalculations = [
-        { name: 'Fajr', angle: angles.fajr },
-        { name: 'Dhuhr', angle: angles.dhuhr },
-        { name: 'Asr', angle: angles.asr },
-        { name: 'Maghrib', angle: angles.maghrib },
-        { name: 'Isha', angle: angles.isha }
-      ];
-      
-      return prayerCalculations.map(({ name, angle }) => {
-        let prayerTime: Date;
-        
-        if (name === 'Dhuhr') {
-          // Solar noon calculation
-          const noon = 12 - lng / 15 + timeEqn / 60;
-          prayerTime = new Date(date);
-          prayerTime.setHours(Math.floor(noon), Math.round((noon % 1) * 60), 0, 0);
-        } else if (name === 'Asr') {
-          // Asr calculation (shadow length ratio)
-          const noon = 12 - lng / 15 + timeEqn / 60;
-          const shadowRatio = 1; // Standard ratio
-          const asrAngle = Math.atan(1 / (shadowRatio + Math.tan(Math.abs(lat - declinationAngle) * Math.PI / 180))) * 180 / Math.PI;
-          const hourAngle = Math.acos((Math.sin(-asrAngle * Math.PI / 180) - Math.sin(lat * Math.PI / 180) * Math.sin(declinationAngle * Math.PI / 180)) / (Math.cos(lat * Math.PI / 180) * Math.cos(declinationAngle * Math.PI / 180))) * 180 / Math.PI;
-          const asrTime = noon + hourAngle / 15;
-          prayerTime = new Date(date);
-          prayerTime.setHours(Math.floor(asrTime), Math.round((asrTime % 1) * 60), 0, 0);
-        } else {
-          // Calculate hour angle for the prayer
-          const hourAngle = Math.acos((Math.sin(angle * Math.PI / 180) - Math.sin(lat * Math.PI / 180) * Math.sin(declinationAngle * Math.PI / 180)) / (Math.cos(lat * Math.PI / 180) * Math.cos(declinationAngle * Math.PI / 180))) * 180 / Math.PI;
-          
-          const noon = 12 - lng / 15 + timeEqn / 60;
-          let prayerHour: number;
-          
-          if (name === 'Fajr') {
-            prayerHour = noon - hourAngle / 15;
-          } else { // Maghrib, Isha
-            prayerHour = noon + hourAngle / 15;
-          }
-          
-          prayerTime = new Date(date);
-          prayerTime.setHours(Math.floor(prayerHour), Math.round((prayerHour % 1) * 60), 0, 0);
-        }
-        
-        // Convert to user's timezone
-        const zonedTime = toZonedTime(prayerTime, timezone);
-        const timeString = format(zonedTime, 'h:mm a'); // 12-hour format with AM/PM
-        const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-        const prayerMinutes = zonedTime.getHours() * 60 + zonedTime.getMinutes();
+      const { lat, lng } = location;
+      const coordinates = new Coordinates(lat, lng);
+      const params = getCalculationMethod(lat, lng);
+      params.madhab = Madhab.Shafi;
+      params.highLatitudeRule = HighLatitudeRule.TwilightAngle;
 
-        return {
-          name,
-          time: timeString,
-          timeObject: zonedTime,
-          minutes: prayerMinutes,
-          arabic: prayerArabicNames[name as keyof typeof prayerArabicNames],
-          passed: prayerMinutes <= currentMinutes
-        };
-      });
+      const times = new AdhanPrayerTimes(coordinates, new Date(), params);
+
+      console.log(
+        'Prayer calculation method:',
+        params.method,
+        '| Fajr angle:',
+        params.fajrAngle,
+        '| Isha angle:',
+        params.ishaAngle,
+        params.ishaInterval ? `| Isha interval: ${params.ishaInterval}min` : '',
+      );
+
+      return times;
     } catch (error) {
       console.error('Error calculating prayer times:', error);
-      return [];
+      return null;
     }
-  }, [location, currentTime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, currentDateKey]);
 
-  // Helper functions for astronomical calculations
-  function getDayOfYear(date: Date): number {
-    const start = new Date(date.getFullYear(), 0, 0);
-    const diff = date.getTime() - start.getTime();
-    return Math.floor(diff / (1000 * 60 * 60 * 24));
-  }
+  // ─── Build display list (updates every second for `passed` status) ────────
+  const prayerTimes = useMemo((): PrayerTime[] => {
+    if (!adhanTimes || !location) return [];
 
-  function getEquationOfTime(dayOfYear: number): number {
-    const B = 2 * Math.PI * (dayOfYear - 81) / 365;
-    return 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
-  }
+    const { timezone } = location;
+    const nowMs = currentTime.getTime();
 
-  function getSolarDeclination(dayOfYear: number): number {
-    return 23.45 * Math.sin(2 * Math.PI * (284 + dayOfYear) / 365);
-  }
-
-  const prayerTimes = calculatePrayerTimes();
-
-  // Find next prayer
-  const getNextPrayer = useCallback((): PrayerTime | null => {
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-    
-    // Find next prayer today
-    for (const prayer of prayerTimes) {
-      if (prayer.minutes > currentMinutes) {
-        return prayer;
-      }
-    }
-    
-    // If no more prayers today, next is tomorrow's Fajr
-    if (prayerTimes.length > 0) {
-      return { ...prayerTimes[0], passed: false };
-    }
-    
-    return null;
-  }, [currentTime, prayerTimes]);
-
-  const nextPrayer = getNextPrayer();
-
-  // Calculate time until next prayer
-  const getTimeUntilNext = useCallback((): string => {
-    if (!nextPrayer) return "";
-    
-    const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
-    let minutesUntil = nextPrayer.minutes - currentMinutes;
-    
-    // If it's tomorrow's prayer
-    if (minutesUntil <= 0) {
-      minutesUntil = (24 * 60) - currentMinutes + nextPrayer.minutes;
-    }
-    
-    const hours = Math.floor(minutesUntil / 60);
-    const mins = minutesUntil % 60;
-    
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    } else {
-      return `${mins}m`;
-    }
-  }, [currentTime, nextPrayer]);
-
-  const timeUntilNext = getTimeUntilNext();
-
-  // Check if it's exactly prayer time for azaan
-  const checkAzaanTime = useCallback(() => {
-    if (!location) return false;
-    
-    const currentTimeInTimezone = formatInTimeZone(currentTime, location.timezone, 'HH:mm');
-    
-    const currentPrayer = prayerTimes.find(prayer => {
-      const prayerTimeFormatted = format(prayer.timeObject, 'HH:mm');
-      return prayerTimeFormatted === currentTimeInTimezone;
+    return PRAYER_ORDER.map(({ key, name }) => {
+      const prayerDate = adhanTimes[key] as Date;
+      return {
+        name,
+        time: formatInTimeZone(prayerDate, timezone, 'h:mm a'),
+        timeObject: prayerDate,
+        arabic: PRAYER_ARABIC[name],
+        passed: nowMs >= prayerDate.getTime(),
+      };
     });
-    
-    if (currentPrayer && lastAzaanPrayer !== currentPrayer.name) {
-      setLastAzaanPrayer(currentPrayer.name);
-      
-      // Show azaan notification
+  }, [adhanTimes, location, currentTime]);
+
+  // ─── Next prayer ──────────────────────────────────────────────────────────
+  const nextPrayer = useMemo((): PrayerTime | null => {
+    if (prayerTimes.length === 0) return null;
+
+    const upcoming = prayerTimes.find((p) => !p.passed);
+    if (upcoming) return upcoming;
+
+    // All prayers passed today → next is tomorrow's Fajr
+    return { ...prayerTimes[0], passed: false };
+  }, [prayerTimes]);
+
+  // ─── Time until next prayer (smooth, Date-based) ─────────────────────────
+  const timeUntilNext = useMemo((): string => {
+    if (!nextPrayer) return '';
+
+    const nowMs = currentTime.getTime();
+    let targetMs = nextPrayer.timeObject.getTime();
+
+    // If every prayer today has passed, target is tomorrow's Fajr
+    const allPassed = prayerTimes.length > 0 && prayerTimes.every((p) => p.passed);
+    if (allPassed) {
+      targetMs += 24 * 60 * 60 * 1000;
+    }
+
+    let diffMs = targetMs - nowMs;
+    if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
+
+    const totalMinutes = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const mins = totalMinutes % 60;
+
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  }, [currentTime, nextPrayer, prayerTimes]);
+
+  // ─── Azaan detection & notification ───────────────────────────────────────
+  const isAzaanTime = useMemo(() => {
+    if (!location || prayerTimes.length === 0) return false;
+
+    const currentHHMM = formatInTimeZone(currentTime, location.timezone, 'HH:mm');
+    return prayerTimes.some(
+      (p) => formatInTimeZone(p.timeObject, location.timezone, 'HH:mm') === currentHHMM,
+    );
+  }, [currentTime, prayerTimes, location]);
+
+  useEffect(() => {
+    if (!location || prayerTimes.length === 0) return;
+
+    const currentHHMM = formatInTimeZone(currentTime, location.timezone, 'HH:mm');
+
+    const matchedPrayer = prayerTimes.find(
+      (p) => formatInTimeZone(p.timeObject, location.timezone, 'HH:mm') === currentHHMM,
+    );
+
+    if (matchedPrayer && lastAzaanPrayerRef.current !== matchedPrayer.name) {
+      lastAzaanPrayerRef.current = matchedPrayer.name;
+
       toast({
-        title: "🕌 Azaan - Time for Prayer",
-        description: `${currentPrayer.arabic} - ${currentPrayer.name} Prayer Time - الله أكبر الله أكبر • Allahu Akbar`,
+        title: 'Azaan - Time for Prayer',
+        description: `${matchedPrayer.arabic} - ${matchedPrayer.name} Prayer Time`,
         duration: 8000,
       });
 
-      // Vibration feedback if available
       if ('vibrate' in navigator) {
         navigator.vibrate([200, 100, 200, 100, 200]);
       }
 
-      // Play azaan sound (if available)
       try {
         const audio = new Audio('/azaan.mp3');
         audio.volume = 0.3;
-        audio.play().catch(() => {
-          // Silent fail if no audio file or permissions denied
-        });
-      } catch (error) {
+        audio.play().catch(() => {});
+      } catch {
         // Silent fail
       }
     }
-    
-    return !!currentPrayer;
-  }, [currentTime, prayerTimes, lastAzaanPrayer, toast, location]);
+  }, [currentTime, prayerTimes, location, toast]);
 
-  const isAzaanTime = checkAzaanTime();
-
-  // Reset azaan tracker at midnight
+  // ─── Reset azaan tracker at midnight (stable – no currentTime dependency) ─
   useEffect(() => {
-    const midnight = new Date();
-    midnight.setHours(24, 0, 0, 0);
-    
-    const timeUntilMidnight = midnight.getTime() - currentTime.getTime();
-    
-    const timer = setTimeout(() => {
-      setLastAzaanPrayer(null);
-    }, timeUntilMidnight);
+    if (!location) return;
 
+    const scheduleReset = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const msUntilMidnight = midnight.getTime() - now.getTime();
+
+      return setTimeout(() => {
+        lastAzaanPrayerRef.current = null;
+        scheduleReset();
+      }, msUntilMidnight);
+    };
+
+    const timer = scheduleReset();
     return () => clearTimeout(timer);
-  }, [currentTime]);
+  }, [location]);
 
-  // Format current time in user's timezone with 12-hour format
-  const formatCurrentTime = useCallback(() => {
+  // ─── Formatted current time ───────────────────────────────────────────────
+  const formattedCurrentTime = useMemo(() => {
     if (!location) {
       return currentTime.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: true
+        hour12: true,
       });
     }
-    
     return formatInTimeZone(currentTime, location.timezone, 'h:mm:ss a');
   }, [currentTime, location]);
 
@@ -348,13 +362,11 @@ export const usePrayerTimes = (): PrayerTimesHook => {
     prayerTimes,
     nextPrayer,
     timeUntilNext,
-    currentTime: formatCurrentTime(),
+    currentTime: formattedCurrentTime,
     isAzaanTime,
-    location: location ? {
-      lat: location.lat,
-      lng: location.lng,
-      timezone: location.timezone
-    } : null,
-    accuracy: location?.accuracy || null
+    location: location
+      ? { lat: location.lat, lng: location.lng, timezone: location.timezone }
+      : null,
+    accuracy: location?.accuracy ?? null,
   };
 };

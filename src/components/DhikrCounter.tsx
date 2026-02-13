@@ -1,87 +1,93 @@
-import { Plus, RotateCcw, ChevronRight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+
+import { Plus, RotateCcw } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const DhikrCounter = () => {
   const [count, setCount] = useState(0);
   const [currentDhikr, setCurrentDhikr] = useState(0);
   
   const dhikrList = [
-    { arabic: "سُبْحَانَ اللَّهِ", transliteration: "SubhanAllah", meaning: "Glory be to Allah", target: 33 },
-    { arabic: "الْحَمْدُ لِلَّهِ", transliteration: "Alhamdulillah", meaning: "All praise is due to Allah", target: 33 },
-    { arabic: "اللَّهُ أَكْبَرُ", transliteration: "Allahu Akbar", meaning: "Allah is the Greatest", target: 34 },
-    { arabic: "لَا إِلَهَ إِلَّا اللَّهُ", transliteration: "La ilaha illa Allah", meaning: "There is no god but Allah", target: 100 }
+    { arabic: "سُبْحَانَ اللَّهِ", transliteration: "SubhanAllah", meaning: "Glory be to Allah" },
+    { arabic: "الْحَمْدُ لِلَّهِ", transliteration: "Alhamdulillah", meaning: "All praise is due to Allah" },
+    { arabic: "اللَّهُ أَكْبَرُ", transliteration: "Allahu Akbar", meaning: "Allah is the Greatest" },
+    { arabic: "لَا إِلَهَ إِلَّا اللَّهُ", transliteration: "La ilaha illa Allah", meaning: "There is no god but Allah" }
   ];
 
-  const current = dhikrList[currentDhikr];
-  const progress = Math.min((count / current.target) * 100, 100);
+  const handleIncrement = () => {
+    setCount(prev => prev + 1);
+  };
 
-  const handleIncrement = () => setCount(prev => prev + 1);
-  const handleReset = () => setCount(0);
+  const handleReset = () => {
+    setCount(0);
+  };
+
   const nextDhikr = () => {
     setCurrentDhikr(prev => (prev + 1) % dhikrList.length);
     setCount(0);
   };
 
   return (
-    <Card className="card-elevated overflow-hidden">
-      <CardContent className="p-6 space-y-5">
-        <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg font-semibold text-foreground">Digital Tasbih</h3>
-          <Button variant="ghost" size="sm" onClick={nextDhikr} className="gap-1 text-xs text-muted-foreground hover:text-primary">
-            Next <ChevronRight className="w-3 h-3" />
+    <Card className="border-accent/20 shadow-luxury-lg overflow-hidden relative">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] via-transparent to-accent/[0.03] pointer-events-none" />
+
+      <CardHeader className="pb-3 relative">
+        <CardTitle className="text-center text-primary text-lg">Digital Tasbih</CardTitle>
+        {/* Subtle separator */}
+        <div className="flex items-center justify-center gap-2 mt-1">
+          <div className="w-8 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          <div className="w-1 h-1 rounded-full bg-accent/40" />
+          <div className="w-8 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-5 relative">
+        {/* Dhikr Text Display */}
+        <div className="text-center space-y-3 p-4 bg-gradient-to-br from-primary/[0.06] to-accent/[0.06] rounded-2xl border border-primary/10">
+          <div className="font-arabic text-3xl text-primary leading-relaxed text-shadow-sm">
+            {dhikrList[currentDhikr].arabic}
+          </div>
+          <div className="space-y-1">
+            <div className="font-medium text-sm">{dhikrList[currentDhikr].transliteration}</div>
+            <div className="text-xs text-muted-foreground italic">
+              {dhikrList[currentDhikr].meaning}
+            </div>
+          </div>
+        </div>
+
+        {/* Counter Circle */}
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full gradient-luxury text-white text-3xl font-bold shadow-luxury-lg relative">
+            {/* Glow ring */}
+            <div className="absolute inset-0 rounded-full animate-glow-ring" />
+            <span className="relative z-10" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>{count}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 rounded-xl border-primary/20 hover:bg-primary/5 transition-all">
+            <RotateCcw className="w-4 h-4" />
+            Reset
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleIncrement}
+            className="flex-1 gap-2 gradient-luxury border-0 text-lg py-6 rounded-xl shadow-luxury hover:shadow-luxury-lg active:scale-[0.98] transition-all duration-200"
+          >
+            <Plus className="w-5 h-5" />
+            Count
           </Button>
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div 
-            key={currentDhikr}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-center space-y-2"
-          >
-            <div className="font-arabic text-3xl text-primary leading-relaxed">{current.arabic}</div>
-            <div className="text-sm font-medium text-foreground/80">{current.transliteration}</div>
-            <div className="text-xs text-muted-foreground italic">{current.meaning}</div>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Count circle with progress ring */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleIncrement}
-            className="relative w-28 h-28 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring group"
-          >
-            {/* Progress ring */}
-            <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="44" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
-              <circle 
-                cx="50" cy="50" r="44" fill="none" 
-                stroke="hsl(var(--accent))" strokeWidth="3" strokeLinecap="round"
-                strokeDasharray={`${progress * 2.76} 276`}
-                className="transition-all duration-300"
-              />
-            </svg>
-            <div className="absolute inset-2 rounded-full gradient-islamic flex flex-col items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow group-active:scale-95">
-              <span className="text-3xl font-bold text-white font-mono">{count}</span>
-              <span className="text-[10px] text-white/60">/ {current.target}</span>
-            </div>
-          </button>
-        </div>
-
-        <p className="text-center text-[11px] text-muted-foreground">Tap the circle to count</p>
-
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleReset} 
-          className="w-full gap-2 rounded-xl"
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={nextDhikr}
+          className="w-full text-primary hover:bg-primary/10 rounded-xl transition-all"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
-          Reset Counter
+          Next Dhikr
         </Button>
       </CardContent>
     </Card>
