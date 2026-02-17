@@ -1,1 +1,7 @@
-project_id = "ustbvvqgigbqtwehnlvf"
+project_id = "ameehhneyxsgneziizea"
+
+[functions.tts]
+verify_jwt = false
+
+[functions.islamic-ai]
+verify_jwt = false

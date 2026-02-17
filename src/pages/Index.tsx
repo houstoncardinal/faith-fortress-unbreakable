@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Moon, Sun, User, Settings } from "lucide-react";
+import { motion } from "framer-motion";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import PrayerTimesCard from "@/components/PrayerTimesCard";
@@ -14,6 +15,7 @@ import GuidedPrayerLauncher from "@/components/GuidedPrayerLauncher";
 import LuxuryDigitalClock from "@/components/LuxuryDigitalClock";
 import KaabaExperience from "@/components/KaabaExperience";
 import IslamicLessons from "@/components/IslamicLessons";
+import IslamicAIAssistant from "@/components/IslamicAIAssistant";
 
 const Index = () => {
   const [isDark, setIsDark] = useState(false);
@@ -123,7 +125,12 @@ const Index = () => {
       {/* Enhanced Desktop Main Content */}
       <main className="container mx-auto px-4 lg:px-8 py-8 lg:py-12 pb-20 lg:pb-12">
         {/* Enhanced Welcome Section */}
-        <div className="text-center mb-12 lg:mb-16 animate-fade-in relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          className="text-center mb-12 lg:mb-16 relative"
+        >
           {/* Ambient background glow */}
           <div className="absolute inset-0 -z-10 blur-3xl opacity-20">
             <div className="absolute inset-x-1/4 top-0 h-32 bg-gradient-to-r from-primary/40 via-accent/30 to-primary/40 rounded-full" />
@@ -146,7 +153,7 @@ const Index = () => {
           </div>
           <p className="text-muted-foreground font-medium text-base lg:text-lg px-2 mb-2">Assalamu Alaikum wa Rahmatullahi wa Barakatuh</p>
           <p className="text-sm lg:text-base text-muted-foreground/70 italic px-2">May Allah's peace, mercy, and blessings be upon you</p>
-        </div>
+        </motion.div>
 
         {/* Notification Permission - Desktop Styled */}
         <div className="mb-8 lg:mb-12 animate-fade-in max-w-md mx-auto lg:max-w-lg">
@@ -272,6 +279,9 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      {/* AI Assistant */}
+      <IslamicAIAssistant />
 
       {/* Mobile Toolbar - Hidden on Desktop */}
       <div className="lg:hidden">
