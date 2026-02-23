@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stars, Sparkles } from '@react-three/drei';
-import { useRef, useMemo, Suspense } from 'react';
+import { useRef, useMemo, useState, Suspense } from 'react';
 import * as THREE from 'three';
 
 // Accurate Kaaba dimensions (real proportions: 13.1m x 11.03m x 12.86m height)
@@ -744,25 +744,214 @@ function Colonnade() {
   );
 }
 
-// ─── Pilgrims ──────────────────────────────────────────────────────────
+// ─── Detailed Pilgrim Model ────────────────────────────────────────────
+
+interface PilgrimData {
+  radius: number;
+  angle: number;
+  scale: number;
+  skinTone: string;
+  garmentColor: string;
+  headCoverColor: string;
+  isFemale: boolean;
+  speed: number;
+  walkPhaseOffset: number;
+  isPraying: boolean;
+  armSwingAmplitude: number;
+  height: number;
+}
+
+function DetailedPilgrim({ data, time }: { data: PilgrimData; time: number }) {
+  const {
+    radius, angle, scale, skinTone, garmentColor, headCoverColor,
+    isFemale, speed, walkPhaseOffset, isPraying, armSwingAmplitude, height,
+  } = data;
+
+  // Each pilgrim orbits at their own speed
+  const currentAngle = angle - time * speed;
+  const x = Math.cos(currentAngle) * radius;
+  const z = Math.sin(currentAngle) * radius;
+
+  // Walk cycle phase
+  const walkPhase = time * speed * 12 + walkPhaseOffset;
+  const bobY = isPraying ? 0 : Math.abs(Math.sin(walkPhase)) * 0.012;
+
+  // Face direction of movement (tangent to circle)
+  const facingAngle = currentAngle - Math.PI / 2;
+
+  // Arm swing
+  const leftArmSwing = isPraying ? 0 : Math.sin(walkPhase) * armSwingAmplitude;
+  const rightArmSwing = isPraying ? 0 : -Math.sin(walkPhase) * armSwingAmplitude;
+
+  // Leg swing
+  const leftLegSwing = isPraying ? 0 : Math.sin(walkPhase) * 0.25;
+  const rightLegSwing = isPraying ? 0 : -Math.sin(walkPhase) * 0.25;
+
+  const headY = height * 0.88;
+  const torsoY = height * 0.55;
+  const armY = height * 0.62;
+  const legY = height * 0.2;
+
+  return (
+    <group position={[x, GROUND_Y + bobY, z]} rotation={[0, facingAngle, 0]} scale={scale}>
+      {/* Head */}
+      <mesh position={[0, headY, 0]} castShadow>
+        <sphereGeometry args={[0.04, 12, 12]} />
+        <meshStandardMaterial color={skinTone} roughness={0.55} metalness={0.05} />
+      </mesh>
+
+      {/* Head covering */}
+      {isFemale ? (
+        // Hijab
+        <group position={[0, headY, 0]}>
+          <mesh position={[0, 0.01, -0.005]}>
+            <sphereGeometry args={[0.047, 12, 12]} />
+            <meshStandardMaterial color={headCoverColor} roughness={0.7} />
+          </mesh>
+          {/* Hijab drape */}
+          <mesh position={[0, -0.03, -0.01]}>
+            <cylinderGeometry args={[0.04, 0.055, 0.06, 8]} />
+            <meshStandardMaterial color={headCoverColor} roughness={0.7} />
+          </mesh>
+        </group>
+      ) : (
+        // Taqiyah/Kufi cap
+        <mesh position={[0, headY + 0.025, 0]}>
+          <cylinderGeometry args={[0.035, 0.038, 0.025, 12]} />
+          <meshStandardMaterial color={headCoverColor} roughness={0.65} />
+        </mesh>
+      )}
+
+      {/* Neck */}
+      <mesh position={[0, height * 0.82, 0]}>
+        <cylinderGeometry args={[0.015, 0.018, 0.03, 8]} />
+        <meshStandardMaterial color={skinTone} roughness={0.55} />
+      </mesh>
+
+      {/* Torso */}
+      {isPraying ? (
+        // Prostrating torso - bent forward
+        <group rotation={[0.8, 0, 0]} position={[0, torsoY - 0.1, 0.08]}>
+          <mesh castShadow>
+            <capsuleGeometry args={[0.05, 0.12, 4, 8]} />
+            <meshStandardMaterial color={garmentColor} roughness={0.65} />
+          </mesh>
+        </group>
+      ) : (
+        <mesh position={[0, torsoY, 0]} castShadow>
+          <capsuleGeometry args={[0.05, 0.18, 4, 8]} />
+          <meshStandardMaterial color={garmentColor} roughness={0.65} />
+        </mesh>
+      )}
+
+      {/* Arms */}
+      {!isPraying && (
+        <>
+          {/* Left arm */}
+          <group position={[-0.065, armY, 0]} rotation={[leftArmSwing, 0, 0.15]}>
+            <mesh>
+              <capsuleGeometry args={[0.016, 0.1, 4, 6]} />
+              <meshStandardMaterial color={garmentColor} roughness={0.65} />
+            </mesh>
+            {/* Hand */}
+            <mesh position={[0, -0.065, 0]}>
+              <sphereGeometry args={[0.014, 8, 8]} />
+              <meshStandardMaterial color={skinTone} roughness={0.55} />
+            </mesh>
+          </group>
+          {/* Right arm */}
+          <group position={[0.065, armY, 0]} rotation={[rightArmSwing, 0, -0.15]}>
+            <mesh>
+              <capsuleGeometry args={[0.016, 0.1, 4, 6]} />
+              <meshStandardMaterial color={garmentColor} roughness={0.65} />
+            </mesh>
+            <mesh position={[0, -0.065, 0]}>
+              <sphereGeometry args={[0.014, 8, 8]} />
+              <meshStandardMaterial color={skinTone} roughness={0.55} />
+            </mesh>
+          </group>
+        </>
+      )}
+
+      {/* Legs */}
+      {!isPraying && (
+        <>
+          <group position={[-0.025, legY, 0]} rotation={[leftLegSwing, 0, 0]}>
+            <mesh>
+              <capsuleGeometry args={[0.02, 0.14, 4, 6]} />
+              <meshStandardMaterial color={garmentColor} roughness={0.65} />
+            </mesh>
+            {/* Foot */}
+            <mesh position={[0, -0.09, 0.015]}>
+              <boxGeometry args={[0.03, 0.015, 0.05]} />
+              <meshStandardMaterial color={isFemale ? '#1a1a1a' : skinTone} roughness={0.6} />
+            </mesh>
+          </group>
+          <group position={[0.025, legY, 0]} rotation={[rightLegSwing, 0, 0]}>
+            <mesh>
+              <capsuleGeometry args={[0.02, 0.14, 4, 6]} />
+              <meshStandardMaterial color={garmentColor} roughness={0.65} />
+            </mesh>
+            <mesh position={[0, -0.09, 0.015]}>
+              <boxGeometry args={[0.03, 0.015, 0.05]} />
+              <meshStandardMaterial color={isFemale ? '#1a1a1a' : skinTone} roughness={0.6} />
+            </mesh>
+          </group>
+        </>
+      )}
+
+      {/* Female abaya bottom extends lower */}
+      {isFemale && !isPraying && (
+        <mesh position={[0, height * 0.32, 0]}>
+          <cylinderGeometry args={[0.04, 0.065, 0.25, 8]} />
+          <meshStandardMaterial color={garmentColor} roughness={0.7} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+// ─── Pilgrims Crowd ───────────────────────────────────────────────────
 
 function Pilgrims() {
-  const pilgrimsRef = useRef<THREE.Group>(null);
+  const timeRef = useRef(0);
+  const [, setTick] = useState(0);
 
   const pilgrims = useMemo(() => {
-    const data: { pos: [number, number, number]; scale: number; color: string; skinTone: string }[] = [];
-    const skinTones = ['#d4a574', '#c68642', '#8d5524', '#e0ac69', '#f1c27d', '#6b4226'];
-    for (let ring = 0; ring < 6; ring++) {
-      const radius = 3 + ring * 1.1;
-      const count = 16 + ring * 9;
+    const data: PilgrimData[] = [];
+
+    const skinTones = ['#d4a574', '#c68642', '#8d5524', '#e0ac69', '#f1c27d', '#6b4226', '#a0785a', '#7a4b2a', '#e8c09a', '#b47c4a'];
+    const maleGarments = ['#ffffff', '#f8f8f0', '#f5f0e0', '#eeeeee', '#fafafa'];
+    const femaleGarments = ['#1a1a1a', '#2a2a2a', '#1e1e30', '#333333', '#0a0a0a', '#f5f5f5', '#e8e0d0'];
+    const maleHeadCovers = ['#ffffff', '#f0f0e8', '#e8e4d0', '#d4c8a0', '#c8c0b0'];
+    const femaleHeadCovers = ['#1a1a1a', '#2a2a40', '#333333', '#f5f0e0', '#0a0a0a', '#1e1e2e', '#444444'];
+
+    // Create rings of pilgrims at different distances
+    for (let ring = 0; ring < 8; ring++) {
+      const baseRadius = 3.0 + ring * 1.2;
+      const count = 14 + ring * 8;
+
       for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2 + Math.random() * 0.15;
-        const rv = radius + (Math.random() - 0.5) * 0.4;
+        const isFemale = Math.random() > 0.55;
+        const isPraying = Math.random() < 0.04 && ring > 2; // ~4% praying, only outer rings
+
         data.push({
-          pos: [Math.cos(angle) * rv, GROUND_Y, Math.sin(angle) * rv],
-          scale: 0.8 + Math.random() * 0.35,
-          color: Math.random() > 0.12 ? '#ffffff' : '#f5f5dc',
+          radius: baseRadius + (Math.random() - 0.5) * 0.6,
+          angle: (i / count) * Math.PI * 2 + Math.random() * 0.2,
+          scale: 0.75 + Math.random() * 0.35,
           skinTone: skinTones[Math.floor(Math.random() * skinTones.length)],
+          garmentColor: isFemale
+            ? femaleGarments[Math.floor(Math.random() * femaleGarments.length)]
+            : maleGarments[Math.floor(Math.random() * maleGarments.length)],
+          headCoverColor: isFemale
+            ? femaleHeadCovers[Math.floor(Math.random() * femaleHeadCovers.length)]
+            : maleHeadCovers[Math.floor(Math.random() * maleHeadCovers.length)],
+          isFemale,
+          speed: 0.02 + Math.random() * 0.025 + (ring < 3 ? 0.008 : 0), // inner rings faster
+          walkPhaseOffset: Math.random() * Math.PI * 2,
+          isPraying,
+          armSwingAmplitude: 0.15 + Math.random() * 0.2,
+          height: 0.35 + Math.random() * 0.1,
         });
       }
     }
@@ -770,24 +959,17 @@ function Pilgrims() {
   }, []);
 
   useFrame((state) => {
-    if (pilgrimsRef.current) {
-      pilgrimsRef.current.rotation.y = -state.clock.elapsedTime * 0.03;
+    timeRef.current = state.clock.elapsedTime;
+    // Throttle re-renders to ~30fps for performance
+    if (Math.floor(state.clock.elapsedTime * 30) % 1 === 0) {
+      setTick(prev => prev + 1);
     }
   });
 
   return (
-    <group ref={pilgrimsRef}>
+    <group>
       {pilgrims.map((p, i) => (
-        <group key={i} position={p.pos} scale={p.scale}>
-          <mesh position={[0, 0.17, 0]}>
-            <capsuleGeometry args={[0.045, 0.15, 4, 8]} />
-            <meshStandardMaterial color={p.color} roughness={0.7} />
-          </mesh>
-          <mesh position={[0, 0.33, 0]}>
-            <sphereGeometry args={[0.035, 16, 16]} />
-            <meshStandardMaterial color={p.skinTone} roughness={0.6} />
-          </mesh>
-        </group>
+        <DetailedPilgrim key={i} data={p} time={timeRef.current} />
       ))}
     </group>
   );
